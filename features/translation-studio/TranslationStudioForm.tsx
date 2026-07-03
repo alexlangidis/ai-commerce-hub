@@ -2,7 +2,6 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { LanguagesIcon } from "lucide-react";
-import { useState } from "react";
 import { Controller, useForm, type Control } from "react-hook-form";
 import { toast } from "sonner";
 
@@ -35,12 +34,13 @@ import {
   type TranslationStudioOutput,
 } from "@/features/translation-studio/schema";
 import { PreviewBlock } from "@/features/shared/PreviewBlock";
+import { useToolPreview } from "@/lib/stores/generation-preview-store";
 
 type SelectName = "sourceLanguage" | "targetLanguage" | "mode";
 
 export function TranslationStudioForm() {
-  const [output, setOutput] = useState<TranslationStudioOutput | null>(null);
-  const [generationId, setGenerationId] = useState("");
+  const { output, generationId, savePreview } =
+    useToolPreview<TranslationStudioOutput>("translation-studio");
   const {
     control,
     register,
@@ -54,8 +54,7 @@ export function TranslationStudioForm() {
   async function onSubmit(values: TranslationStudioInput) {
     try {
       const result = await createTranslationGeneration(values);
-      setOutput(result.output);
-      setGenerationId(result.generationId);
+      savePreview(result.output, result.generationId);
       toast.success("Translation saved to history.");
     } catch {
       toast.error("Could not translate this content.");
@@ -64,7 +63,7 @@ export function TranslationStudioForm() {
 
   return (
     <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_420px]">
-      <Card>
+      <Card className="app-panel ring-0">
         <CardHeader>
           <CardTitle>Translation input</CardTitle>
           <CardDescription>
@@ -192,7 +191,7 @@ function TranslationPreview({
 }) {
   if (!output) {
     return (
-      <Card className="h-fit xl:sticky xl:top-20">
+      <Card className="app-panel ring-0 h-fit xl:sticky xl:top-24">
         <CardHeader>
           <CardTitle>Translation result</CardTitle>
           <CardDescription>Translated content will appear here.</CardDescription>
@@ -207,7 +206,7 @@ function TranslationPreview({
   }
 
   return (
-    <Card className="h-fit xl:sticky xl:top-20">
+    <Card className="app-panel ring-0 h-fit xl:sticky xl:top-24">
       <CardHeader>
         <div className="flex items-start justify-between gap-3">
           <div>

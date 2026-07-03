@@ -2,7 +2,6 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { SearchCheckIcon } from "lucide-react";
-import { useState } from "react";
 import { Controller, useForm, type Control, type UseFormRegisterReturn } from "react-hook-form";
 import { toast } from "sonner";
 
@@ -35,10 +34,11 @@ import {
   type SeoOptimizerOutput,
 } from "@/features/seo-optimizer/schema";
 import { PreviewBlock } from "@/features/shared/PreviewBlock";
+import { useToolPreview } from "@/lib/stores/generation-preview-store";
 
 export function SeoOptimizerForm() {
-  const [output, setOutput] = useState<SeoOptimizerOutput | null>(null);
-  const [generationId, setGenerationId] = useState("");
+  const { output, generationId, savePreview } =
+    useToolPreview<SeoOptimizerOutput>("seo-optimizer");
   const {
     control,
     register,
@@ -52,8 +52,7 @@ export function SeoOptimizerForm() {
   async function onSubmit(values: SeoOptimizerInput) {
     try {
       const result = await createSeoOptimization(values);
-      setOutput(result.output);
-      setGenerationId(result.generationId);
+      savePreview(result.output, result.generationId);
       toast.success("SEO optimization saved to history.");
     } catch {
       toast.error("Could not optimize this content.");
@@ -62,7 +61,7 @@ export function SeoOptimizerForm() {
 
   return (
     <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_420px]">
-      <Card>
+      <Card className="app-panel ring-0">
         <CardHeader>
           <CardTitle>SEO input</CardTitle>
           <CardDescription>
@@ -212,7 +211,7 @@ function SeoPreview({
 }) {
   if (!output) {
     return (
-      <Card className="h-fit xl:sticky xl:top-20">
+      <Card className="app-panel ring-0 h-fit xl:sticky xl:top-24">
         <CardHeader>
           <CardTitle>SEO result</CardTitle>
           <CardDescription>Optimization results will appear here.</CardDescription>
@@ -227,7 +226,7 @@ function SeoPreview({
   }
 
   return (
-    <Card className="h-fit xl:sticky xl:top-20">
+    <Card className="app-panel ring-0 h-fit xl:sticky xl:top-24">
       <CardHeader>
         <div className="flex items-start justify-between gap-3">
           <div>

@@ -1,17 +1,8 @@
 "use client";
 
 import type * as React from "react";
-
-import {
-  BotIcon,
-  FileTextIcon,
-  LanguagesIcon,
-  LayoutDashboardIcon,
-  MegaphoneIcon,
-  SearchCheckIcon,
-  StoreIcon,
-  WandSparklesIcon,
-} from "lucide-react";
+import Link from "next/link";
+import { StoreIcon } from "lucide-react";
 
 import { NavMain } from "@/components/nav-main";
 import { NavUser } from "@/components/nav-user";
@@ -25,6 +16,7 @@ import {
   SidebarMenuItem,
   SidebarRail,
 } from "@/components/ui/sidebar";
+import { sidebarNavItems, sidebarQuickLinks } from "@/lib/app-navigation";
 
 type AppSidebarProps = React.ComponentProps<typeof Sidebar> & {
   user: {
@@ -33,88 +25,35 @@ type AppSidebarProps = React.ComponentProps<typeof Sidebar> & {
   };
 };
 
-const navItems = [
-  {
-    title: "Dashboard",
-    url: "/dashboard",
-    icon: LayoutDashboardIcon,
-  },
-  {
-    title: "AI Tools",
-    url: "/dashboard",
-    icon: BotIcon,
-    items: [
-      {
-        title: "Product Content Generator",
-        url: "/dashboard/product-generator",
-      },
-      {
-        title: "Rewrite Studio",
-        url: "/dashboard/rewrite-studio",
-      },
-      {
-        title: "SEO Optimizer",
-        url: "/dashboard/seo-optimizer",
-      },
-      {
-        title: "Translation Studio",
-        url: "/dashboard/translation-studio",
-      },
-    ],
-  },
-  {
-    title: "Brand Voice",
-    url: "/dashboard/brand-voice",
-    icon: MegaphoneIcon,
-  },
-  {
-    title: "Prompt Templates",
-    url: "/dashboard/prompt-templates",
-    icon: FileTextIcon,
-  },
-  {
-    title: "History",
-    url: "/dashboard/history",
-    icon: SearchCheckIcon,
-  },
-];
-
-const upcomingItems = [
-  {
-    title: "Languages",
-    url: "/dashboard/translation-studio",
-    icon: LanguagesIcon,
-  },
-  {
-    title: "WooCommerce HTML",
-    url: "/dashboard/product-generator",
-    icon: WandSparklesIcon,
-  },
-];
-
 export function AppSidebar({ user, ...props }: AppSidebarProps) {
   return (
     <Sidebar collapsible="icon" {...props}>
-      <SidebarHeader>
+      <SidebarHeader className="border-b border-sidebar-border/60">
         <SidebarMenu>
           <SidebarMenuItem>
-            <SidebarMenuButton size="lg" tooltip="AI Commerce Hub">
-              <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-sidebar-primary text-sidebar-primary-foreground">
+            <SidebarMenuButton
+              size="lg"
+              tooltip="AI Commerce Hub Studio"
+              render={<Link href="/dashboard" />}
+            >
+              <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-gradient-to-br from-sidebar-primary to-chart-2 text-sidebar-primary-foreground shadow-sm">
                 <StoreIcon />
               </div>
               <div className="grid flex-1 text-left text-sm leading-tight">
                 <span className="truncate font-medium">AI Commerce Hub</span>
-                <span className="truncate text-xs">Product content suite</span>
+                <span className="truncate text-xs text-sidebar-foreground/70">
+                  Studio workspace
+                </span>
               </div>
             </SidebarMenuButton>
           </SidebarMenuItem>
         </SidebarMenu>
       </SidebarHeader>
       <SidebarContent>
-        <NavMain label="Workspace" items={navItems} />
-        <NavMain label="Coming next" items={upcomingItems} />
+        <NavMain label="Workspace" items={sidebarNavItems} />
+        <NavMain label="Quick links" items={sidebarQuickLinks} />
       </SidebarContent>
-      <SidebarFooter>
+      <SidebarFooter className="border-t border-sidebar-border/60">
         <NavUser
           user={{
             name: user.name || "Commerce user",

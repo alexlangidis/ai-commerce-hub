@@ -2,15 +2,11 @@ import { formatDistanceToNow } from "date-fns";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
+import { AppPanel } from "@/components/app/app-panel";
+import { PageHeader } from "@/components/app/page-header";
+import { PageShell } from "@/components/app/page-shell";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
 import { CopyButton } from "@/features/history/CopyButton";
 import {
   getGenerationTitle,
@@ -47,31 +43,12 @@ export default async function HistoryDetailPage({
   ].includes(generation.tool);
 
   return (
-    <main className="flex flex-1 flex-col gap-6 p-4 md:p-6">
-      <section className="rounded-xl border bg-card p-6 text-card-foreground shadow-sm">
-        <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
-          <div className="flex max-w-3xl flex-col gap-3">
-            <Badge variant="secondary" className="w-fit">
-              History detail
-            </Badge>
-            <h1 className="text-3xl font-semibold tracking-tight">{title}</h1>
-            <p className="text-base leading-7 text-muted-foreground">
-              {generation.tool} · {generation.language} · {generation.tone} ·{" "}
-              {generation.model}
-            </p>
-            <div className="flex flex-wrap gap-2">
-              <Badge variant="outline">
-                Created{" "}
-                {formatDistanceToNow(new Date(generation.createdAt), {
-                  addSuffix: true,
-                })}
-              </Badge>
-              <Badge variant="secondary">
-                {generation.versions.length} version
-                {generation.versions.length === 1 ? "" : "s"}
-              </Badge>
-            </div>
-          </div>
+    <PageShell>
+      <PageHeader
+        eyebrow="History detail"
+        title={title}
+        description={`${generation.tool} · ${generation.language} · ${generation.tone} · ${generation.model}`}
+        action={
           <div className="flex flex-col gap-2 sm:flex-row">
             <RegenerateButton
               generationId={generation.id}
@@ -85,86 +62,94 @@ export default async function HistoryDetailPage({
               Back to history
             </Button>
           </div>
-        </div>
-      </section>
+        }
+      />
+
+      <div className="flex flex-wrap gap-2">
+        <Badge variant="outline">
+          Created{" "}
+          {formatDistanceToNow(new Date(generation.createdAt), {
+            addSuffix: true,
+          })}
+        </Badge>
+        <Badge variant="secondary" className="bg-primary/10 text-primary">
+          {generation.versions.length} version
+          {generation.versions.length === 1 ? "" : "s"}
+        </Badge>
+      </div>
 
       <section className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_380px]">
-        <Card>
-          <CardHeader>
+        <AppPanel>
+          <div className="flex flex-col gap-4 p-6">
             <div className="flex items-start justify-between gap-3">
-              <div className="flex flex-col gap-1">
-                <CardTitle>Latest output</CardTitle>
-                <CardDescription>
+              <div>
+                <h2 className="text-base font-semibold">Latest output</h2>
+                <p className="mt-1 text-sm text-muted-foreground">
                   Copy individual fields or inspect version output below.
-                </CardDescription>
+                </p>
               </div>
               <CopyButton
                 label="Copy all"
                 value={JSON.stringify(generation.output, null, 2)}
               />
             </div>
-          </CardHeader>
-          <CardContent>
             <HistoryOutput output={generation.output} />
-          </CardContent>
-        </Card>
+          </div>
+        </AppPanel>
 
-        <Card className="h-fit xl:sticky xl:top-20">
-          <CardHeader>
+        <AppPanel className="h-fit xl:sticky xl:top-24">
+          <div className="flex flex-col gap-4 p-6">
             <div className="flex items-start justify-between gap-3">
-              <div className="flex flex-col gap-1">
-                <CardTitle>Original input</CardTitle>
-                <CardDescription>
+              <div>
+                <h2 className="text-base font-semibold">Original input</h2>
+                <p className="mt-1 text-sm text-muted-foreground">
                   The exact data used for this generation.
-                </CardDescription>
+                </p>
               </div>
               <CopyButton
                 label="Copy input"
                 value={JSON.stringify(generation.input, null, 2)}
               />
             </div>
-          </CardHeader>
-          <CardContent>
-            <pre className="max-h-[480px] overflow-auto rounded-lg bg-muted p-3 text-xs leading-5">
+            <pre className="max-h-[480px] overflow-auto rounded-xl bg-muted/50 p-3 text-xs leading-5">
               {JSON.stringify(generation.input, null, 2)}
             </pre>
-          </CardContent>
-        </Card>
+          </div>
+        </AppPanel>
       </section>
 
       <section className="flex flex-col gap-4">
-        <div className="flex flex-col gap-1">
+        <div>
           <h2 className="text-xl font-semibold tracking-tight">Versions</h2>
           <p className="text-sm text-muted-foreground">
-            Regeneration adds a new version and promotes it to the latest
-            output.
+            Regeneration adds a new version and promotes it to the latest output.
           </p>
         </div>
         {generation.versions.map((version) => (
-          <Card key={version.id}>
-            <CardHeader>
+          <AppPanel key={version.id}>
+            <div className="flex flex-col gap-4 p-6">
               <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
-                <div className="flex flex-col gap-1">
-                  <CardTitle>Version {version.versionNumber}</CardTitle>
-                  <CardDescription>
+                <div>
+                  <h3 className="text-base font-semibold">
+                    Version {version.versionNumber}
+                  </h3>
+                  <p className="text-sm text-muted-foreground">
                     {version.model} ·{" "}
                     {formatDistanceToNow(new Date(version.createdAt), {
                       addSuffix: true,
                     })}
-                  </CardDescription>
+                  </p>
                 </div>
                 <CopyButton
                   label="Copy version"
                   value={JSON.stringify(version.output, null, 2)}
                 />
               </div>
-            </CardHeader>
-            <CardContent>
               <HistoryOutput output={version.output} compact />
-            </CardContent>
-          </Card>
+            </div>
+          </AppPanel>
         ))}
       </section>
-    </main>
+    </PageShell>
   );
 }

@@ -64,7 +64,7 @@ export function BrandVoiceForm({ initialValues }: BrandVoiceFormProps) {
 
   return (
     <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_360px]">
-      <Card>
+      <Card className="app-panel ring-0">
         <CardHeader>
           <CardTitle>Brand rules</CardTitle>
           <CardDescription>
@@ -133,7 +133,7 @@ export function BrandVoiceForm({ initialValues }: BrandVoiceFormProps) {
         </CardContent>
       </Card>
 
-      <Card className="h-fit lg:sticky lg:top-20">
+      <Card className="app-panel ring-0 h-fit lg:sticky lg:top-24">
         <CardHeader>
           <CardTitle>AI output preview</CardTitle>
           <CardDescription>

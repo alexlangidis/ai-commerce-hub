@@ -6,11 +6,11 @@ export function PreviewBlock({
   value: string;
 }) {
   return (
-    <section className="flex flex-col gap-2 rounded-lg bg-muted p-3">
-      <h3 className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+    <section className="app-panel rounded-xl p-4">
+      <h3 className="text-xs font-medium tracking-wide text-primary uppercase">
         {title}
       </h3>
-      <p className="whitespace-pre-wrap leading-6">{value}</p>
+      <p className="mt-2 whitespace-pre-wrap text-sm leading-6">{value}</p>
     </section>
   );
 }

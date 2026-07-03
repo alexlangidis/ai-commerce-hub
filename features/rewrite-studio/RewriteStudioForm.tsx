@@ -2,7 +2,6 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { WandSparklesIcon } from "lucide-react";
-import { useState } from "react";
 import { Controller, useForm, type Control } from "react-hook-form";
 import { toast } from "sonner";
 
@@ -36,12 +35,13 @@ import {
   type RewriteStudioOutput,
 } from "@/features/rewrite-studio/schema";
 import { PreviewBlock } from "@/features/shared/PreviewBlock";
+import { useToolPreview } from "@/lib/stores/generation-preview-store";
 
 type SelectName = "mode" | "targetLanguage" | "tone";
 
 export function RewriteStudioForm() {
-  const [output, setOutput] = useState<RewriteStudioOutput | null>(null);
-  const [generationId, setGenerationId] = useState("");
+  const { output, generationId, savePreview } =
+    useToolPreview<RewriteStudioOutput>("rewrite-studio");
   const {
     control,
     register,
@@ -55,8 +55,7 @@ export function RewriteStudioForm() {
   async function onSubmit(values: RewriteStudioInput) {
     try {
       const result = await createRewriteGeneration(values);
-      setOutput(result.output);
-      setGenerationId(result.generationId);
+      savePreview(result.output, result.generationId);
       toast.success("Rewrite saved to history.");
     } catch {
       toast.error("Could not rewrite this description.");
@@ -65,7 +64,7 @@ export function RewriteStudioForm() {
 
   return (
     <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_420px]">
-      <Card>
+      <Card className="app-panel ring-0">
         <CardHeader>
           <CardTitle>Rewrite settings</CardTitle>
           <CardDescription>
@@ -193,7 +192,7 @@ function RewritePreview({
 }) {
   if (!output) {
     return (
-      <Card className="h-fit xl:sticky xl:top-20">
+      <Card className="app-panel ring-0 h-fit xl:sticky xl:top-24">
         <CardHeader>
           <CardTitle>Before / after</CardTitle>
           <CardDescription>Your rewritten content will appear here.</CardDescription>
@@ -208,7 +207,7 @@ function RewritePreview({
   }
 
   return (
-    <Card className="h-fit xl:sticky xl:top-20">
+    <Card className="app-panel ring-0 h-fit xl:sticky xl:top-24">
       <CardHeader>
         <div className="flex items-start justify-between gap-3">
           <div>

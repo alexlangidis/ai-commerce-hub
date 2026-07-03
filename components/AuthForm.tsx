@@ -1,13 +1,19 @@
 "use client";
 
+import type { ReactNode } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { ArrowRightIcon, LockIcon, MailIcon, UserIcon } from "lucide-react";
 
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Separator } from "@/components/ui/separator";
 import { authClient } from "@/lib/auth-client";
+import { cn } from "@/lib/utils";
 
 type AuthFormProps = {
   mode: "login" | "signup";
@@ -50,12 +56,12 @@ export function AuthForm({ mode }: AuthFormProps) {
           name: "name" in values ? values.name : "",
           email: values.email,
           password: values.password,
-          callbackURL: "/",
+          callbackURL: "/dashboard",
         })
       : await authClient.signIn.email({
           email: values.email,
           password: values.password,
-          callbackURL: "/",
+          callbackURL: "/dashboard",
         });
 
     if (result.error) {
@@ -63,104 +69,120 @@ export function AuthForm({ mode }: AuthFormProps) {
       return;
     }
 
-    router.push("/");
+    router.push("/dashboard");
     router.refresh();
   }
 
   return (
-    <form
-      onSubmit={handleSubmit(onSubmit)}
-      className="flex w-full max-w-sm flex-col gap-5 rounded-lg border border-black/10 bg-white p-6 shadow-sm dark:border-white/10 dark:bg-zinc-950"
-    >
-      <div className="flex flex-col gap-2">
-        <h1 className="text-2xl font-semibold text-zinc-950 dark:text-zinc-50">
+    <div className="landing-glass rounded-2xl p-6 sm:p-8">
+      <div className="mb-6 hidden flex-col gap-1 lg:flex">
+        <h2 className="text-2xl font-semibold tracking-tight">
           {isSignup ? "Create account" : "Log in"}
-        </h1>
-        <p className="text-sm leading-6 text-zinc-600 dark:text-zinc-400">
+        </h2>
+        <p className="text-sm leading-6 text-muted-foreground">
           {isSignup
-            ? "Start with an email and password account."
-            : "Use your email and password to continue."}
+            ? "Start with email and password. Upgrade anytime."
+            : "Enter your credentials to access the studio."}
         </p>
       </div>
 
-      {isSignup ? (
-        <label className="flex flex-col gap-2 text-sm font-medium text-zinc-800 dark:text-zinc-200">
-          Name
-          <input
-            {...register("name")}
-            autoComplete="name"
-            aria-invalid={Boolean("name" in errors && errors.name)}
-            className="h-11 rounded-md border border-black/10 bg-transparent px-3 text-base text-zinc-950 outline-none transition focus:border-zinc-950 dark:border-white/15 dark:text-zinc-50 dark:focus:border-zinc-50"
-          />
-          {"name" in errors && errors.name ? (
-            <span className="text-sm font-normal text-red-600 dark:text-red-300">
-              {errors.name.message}
-            </span>
-          ) : null}
-        </label>
-      ) : null}
-
-      <label className="flex flex-col gap-2 text-sm font-medium text-zinc-800 dark:text-zinc-200">
-        Email
-        <input
-          type="email"
-          {...register("email")}
-          autoComplete="email"
-          aria-invalid={Boolean(errors.email)}
-          className="h-11 rounded-md border border-black/10 bg-transparent px-3 text-base text-zinc-950 outline-none transition focus:border-zinc-950 dark:border-white/15 dark:text-zinc-50 dark:focus:border-zinc-50"
-        />
-        {errors.email ? (
-          <span className="text-sm font-normal text-red-600 dark:text-red-300">
-            {errors.email.message}
-          </span>
+      <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-4">
+        {isSignup ? (
+          <AuthField
+            label="Name"
+            error={"name" in errors ? errors.name?.message : undefined}
+          >
+            <div className="relative">
+              <UserIcon className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
+              <Input
+                {...register("name")}
+                autoComplete="name"
+                className="h-10 pl-9"
+                aria-invalid={Boolean("name" in errors && errors.name)}
+              />
+            </div>
+          </AuthField>
         ) : null}
-      </label>
 
-      <label className="flex flex-col gap-2 text-sm font-medium text-zinc-800 dark:text-zinc-200">
-        Password
-        <input
-          type="password"
-          {...register("password")}
-          autoComplete={isSignup ? "new-password" : "current-password"}
-          aria-invalid={Boolean(errors.password)}
-          className="h-11 rounded-md border border-black/10 bg-transparent px-3 text-base text-zinc-950 outline-none transition focus:border-zinc-950 dark:border-white/15 dark:text-zinc-50 dark:focus:border-zinc-50"
-        />
-        {errors.password ? (
-          <span className="text-sm font-normal text-red-600 dark:text-red-300">
-            {errors.password.message}
-          </span>
+        <AuthField label="Email" error={errors.email?.message}>
+          <div className="relative">
+            <MailIcon className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
+            <Input
+              type="email"
+              {...register("email")}
+              autoComplete="email"
+              className="h-10 pl-9"
+              aria-invalid={Boolean(errors.email)}
+            />
+          </div>
+        </AuthField>
+
+        <AuthField label="Password" error={errors.password?.message}>
+          <div className="relative">
+            <LockIcon className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
+            <Input
+              type="password"
+              {...register("password")}
+              autoComplete={isSignup ? "new-password" : "current-password"}
+              className="h-10 pl-9"
+              aria-invalid={Boolean(errors.password)}
+            />
+          </div>
+        </AuthField>
+
+        {error ? (
+          <p className="rounded-lg border border-destructive/30 bg-destructive/10 px-3 py-2 text-sm text-destructive">
+            {error}
+          </p>
         ) : null}
-      </label>
 
-      {error ? (
-        <p className="rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700 dark:border-red-900/60 dark:bg-red-950/40 dark:text-red-200">
-          {error}
-        </p>
-      ) : null}
+        <Button
+          type="submit"
+          disabled={isSubmitting}
+          className="landing-glow mt-1 h-10 w-full"
+        >
+          {isSubmitting
+            ? isSignup
+              ? "Creating account..."
+              : "Logging in..."
+            : isSignup
+              ? "Create account"
+              : "Log in"}
+          {!isSubmitting ? <ArrowRightIcon data-icon="inline-end" /> : null}
+        </Button>
+      </form>
 
-      <button
-        type="submit"
-        disabled={isSubmitting}
-        className="h-11 rounded-md bg-zinc-950 px-4 text-sm font-medium text-white transition hover:bg-zinc-800 disabled:cursor-not-allowed disabled:opacity-60 dark:bg-zinc-50 dark:text-zinc-950 dark:hover:bg-zinc-200"
-      >
-        {isSubmitting
-          ? isSignup
-            ? "Creating account..."
-            : "Logging in..."
-          : isSignup
-            ? "Create account"
-            : "Log in"}
-      </button>
+      <Separator className="my-6" />
 
-      <p className="text-center text-sm text-zinc-600 dark:text-zinc-400">
+      <p className="text-center text-sm text-muted-foreground">
         {isSignup ? "Already have an account?" : "Need an account?"}{" "}
         <Link
           href={isSignup ? "/login" : "/signup"}
-          className="font-medium text-zinc-950 underline underline-offset-4 dark:text-zinc-50"
+          className="font-medium text-primary underline-offset-4 hover:underline"
         >
-          {isSignup ? "Log in" : "Sign up"}
+          {isSignup ? "Log in" : "Sign up free"}
         </Link>
       </p>
-    </form>
+    </div>
+  );
+}
+
+function AuthField({
+  label,
+  error,
+  children,
+}: {
+  label: string;
+  error?: string;
+  children: ReactNode;
+}) {
+  return (
+    <label className="flex flex-col gap-2">
+      <span className="text-sm font-medium">{label}</span>
+      {children}
+      {error ? (
+        <span className={cn("text-sm text-destructive")}>{error}</span>
+      ) : null}
+    </label>
   );
 }

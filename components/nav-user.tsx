@@ -1,15 +1,18 @@
 "use client";
 
+import Link from "next/link";
 import {
   ChevronsUpDownIcon,
+  HistoryIcon,
   LogOutIcon,
-  SettingsIcon,
-  UserIcon,
+  MegaphoneIcon,
+  StoreIcon,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -53,15 +56,22 @@ export function NavUser({
         <DropdownMenu>
           <DropdownMenuTrigger
             render={
-              <SidebarMenuButton size="lg" className="aria-expanded:bg-muted" />
+              <SidebarMenuButton
+                size="lg"
+                className="aria-expanded:bg-sidebar-accent"
+              />
             }
           >
             <Avatar>
-              <AvatarFallback>{user.fallback}</AvatarFallback>
+              <AvatarFallback className="bg-sidebar-primary/20 text-sidebar-primary">
+                {user.fallback}
+              </AvatarFallback>
             </Avatar>
             <div className="grid flex-1 text-left text-sm leading-tight">
               <span className="truncate font-medium">{user.name}</span>
-              <span className="truncate text-xs">{user.email}</span>
+              <span className="truncate text-xs text-sidebar-foreground/70">
+                {user.email}
+              </span>
             </div>
             <ChevronsUpDownIcon className="ml-auto" />
           </DropdownMenuTrigger>
@@ -71,35 +81,63 @@ export function NavUser({
             align="end"
             sideOffset={4}
           >
-            <DropdownMenuLabel className="p-0 font-normal">
-              <div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
-                <Avatar>
-                  <AvatarFallback>{user.fallback}</AvatarFallback>
-                </Avatar>
-                <div className="grid flex-1 text-left text-sm leading-tight">
-                  <span className="truncate font-medium">{user.name}</span>
-                  <span className="truncate text-xs">{user.email}</span>
+            <DropdownMenuGroup>
+              <DropdownMenuLabel className="p-0 font-normal">
+                <div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
+                  <Avatar>
+                    <AvatarFallback className="bg-primary/15 text-primary">
+                      {user.fallback}
+                    </AvatarFallback>
+                  </Avatar>
+                  <div className="grid flex-1 text-left text-sm leading-tight">
+                    <span className="truncate font-medium">{user.name}</span>
+                    <span className="truncate text-xs text-muted-foreground">
+                      {user.email}
+                    </span>
+                  </div>
                 </div>
-              </div>
-            </DropdownMenuLabel>
+              </DropdownMenuLabel>
+            </DropdownMenuGroup>
             <DropdownMenuSeparator />
             <DropdownMenuGroup>
-              <DropdownMenuItem>
-                <UserIcon />
-                Account
+              <DropdownMenuItem render={<Link href="/dashboard" />}>
+                <StoreIcon />
+                Dashboard
               </DropdownMenuItem>
-              <DropdownMenuItem>
-                <SettingsIcon />
-                Settings
+              <DropdownMenuItem render={<Link href="/dashboard/brand-voice" />}>
+                <MegaphoneIcon />
+                Brand Voice
+              </DropdownMenuItem>
+              <DropdownMenuItem render={<Link href="/dashboard/history" />}>
+                <HistoryIcon />
+                History
               </DropdownMenuItem>
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
-            <DropdownMenuItem onClick={handleSignOut} disabled={isPending}>
-              <LogOutIcon />
-              {isPending ? "Signing out..." : "Log out"}
-            </DropdownMenuItem>
+            <DropdownMenuGroup>
+              <DropdownMenuItem
+                onClick={handleSignOut}
+                disabled={isPending}
+                variant="destructive"
+              >
+                <LogOutIcon />
+                {isPending ? "Signing out..." : "Log out"}
+              </DropdownMenuItem>
+            </DropdownMenuGroup>
           </DropdownMenuContent>
         </DropdownMenu>
+      </SidebarMenuItem>
+      <SidebarMenuItem className="group-data-[collapsible=icon]:hidden">
+        <Button
+          variant="outline"
+          size="sm"
+          className="w-full justify-start border-sidebar-border/70 bg-sidebar-accent/40"
+          onClick={handleSignOut}
+          disabled={isPending}
+        >
+          <LogOutIcon data-icon="inline-start" />
+          {isPending ? "Signing out..." : "Log out"}
+        </Button>
       </SidebarMenuItem>
     </SidebarMenu>
   );

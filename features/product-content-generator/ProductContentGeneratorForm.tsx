@@ -2,19 +2,15 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { WandSparklesIcon } from "lucide-react";
-import { useState } from "react";
 import { Controller, useForm, type Control, type UseFormRegisterReturn } from "react-hook-form";
 import { toast } from "sonner";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+  ToolFormPanel,
+  ToolPreviewPanel,
+} from "@/components/app/form-panel";
 import { Input } from "@/components/ui/input";
 import {
   Select,
@@ -37,12 +33,13 @@ import {
   type ProductContentOutput,
 } from "@/features/product-content-generator/schema";
 import { PreviewBlock } from "@/features/shared/PreviewBlock";
+import { useToolPreview } from "@/lib/stores/generation-preview-store";
 
 type SelectFieldName = "category" | "targetLanguage" | "tone";
 
 export function ProductContentGeneratorForm() {
-  const [output, setOutput] = useState<ProductContentOutput | null>(null);
-  const [generationId, setGenerationId] = useState("");
+  const { output, generationId, savePreview } =
+    useToolPreview<ProductContentOutput>("product-generator");
   const {
     control,
     register,
@@ -56,8 +53,7 @@ export function ProductContentGeneratorForm() {
   async function onSubmit(values: ProductContentInput) {
     try {
       const result = await createProductContent(values);
-      setOutput(result.output);
-      setGenerationId(result.generationId);
+      savePreview(result.output, result.generationId);
       toast.success("Product content generated and saved.");
     } catch {
       toast.error("Could not generate product content. Please try again.");
@@ -66,16 +62,27 @@ export function ProductContentGeneratorForm() {
 
   return (
     <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_420px]">
-      <Card>
-        <CardHeader>
-          <CardTitle>Product details</CardTitle>
-          <CardDescription>
-            Add the product facts. The preview generator saves output to history
-            without using AI yet.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-5">
+      <ToolFormPanel
+        title="Product details"
+        description="Add the product facts. The preview generator saves output to history without using AI yet."
+        footer={
+          <>
+            <p className="text-sm text-muted-foreground">
+              Output is saved as generation version 1 for history and future
+              regeneration.
+            </p>
+            <Button type="submit" form="product-content-form" disabled={isSubmitting}>
+              <WandSparklesIcon data-icon="inline-start" />
+              {isSubmitting ? "Generating..." : "Generate preview"}
+            </Button>
+          </>
+        }
+      >
+        <form
+          id="product-content-form"
+          onSubmit={handleSubmit(onSubmit)}
+          className="flex flex-col gap-5"
+        >
             <div className="grid gap-4 md:grid-cols-2">
               <InputField
                 label="Product name"
@@ -130,20 +137,8 @@ export function ProductContentGeneratorForm() {
               inputProps={register("specifications")}
               error={errors.specifications?.message}
             />
-
-            <div className="flex flex-col gap-3 border-t pt-5 sm:flex-row sm:items-center sm:justify-between">
-              <p className="text-sm text-muted-foreground">
-                Output is saved as generation version 1 for history and future
-                regeneration.
-              </p>
-              <Button type="submit" disabled={isSubmitting}>
-                <WandSparklesIcon data-icon="inline-start" />
-                {isSubmitting ? "Generating..." : "Generate preview"}
-              </Button>
-            </div>
           </form>
-        </CardContent>
-      </Card>
+      </ToolFormPanel>
 
       <ProductContentPreview output={output} generationId={generationId} />
     </div>
@@ -170,6 +165,7 @@ function InputField({
         {...inputProps}
         id={inputProps.name}
         placeholder={placeholder}
+        className="h-10 bg-background/80"
         aria-invalid={Boolean(error)}
       />
       {error ? <p className="text-sm text-destructive">{error}</p> : null}
@@ -209,7 +205,7 @@ function SelectField({
             value={field.value}
             onValueChange={(value) => field.onChange(value ?? "")}
           >
-            <SelectTrigger id={name} aria-invalid={Boolean(error)} className="w-full">
+            <SelectTrigger id={name} aria-invalid={Boolean(error)} className="h-10 w-full bg-background/80">
               <SelectValue placeholder={`Select ${label.toLowerCase()}`} />
             </SelectTrigger>
             <SelectContent>
@@ -256,6 +252,7 @@ function TextAreaField({
         id={inputProps.name}
         rows={4}
         placeholder={placeholder}
+        className="bg-background/80"
         aria-invalid={Boolean(error)}
       />
       {error ? <p className="text-sm text-destructive">{error}</p> : null}
@@ -272,46 +269,32 @@ function ProductContentPreview({
 }) {
   if (!output) {
     return (
-      <Card className="h-fit xl:sticky xl:top-20">
-        <CardHeader>
-          <CardTitle>Output preview</CardTitle>
-          <CardDescription>
-            Generated content will appear here after the first submit.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="rounded-lg bg-muted p-4 text-sm text-muted-foreground">
-            No generation yet.
-          </div>
-        </CardContent>
-      </Card>
+      <ToolPreviewPanel
+        title="Output preview"
+        description="Generated content will appear here after the first submit."
+      >
+        <div className="tool-empty-state">No generation yet. Fill in the form and click Generate preview.</div>
+      </ToolPreviewPanel>
     );
   }
 
   return (
-    <Card className="h-fit xl:sticky xl:top-20">
-      <CardHeader>
-        <div className="flex items-start justify-between gap-3">
-          <div className="flex flex-col gap-1">
-            <CardTitle>Output preview</CardTitle>
-            <CardDescription>Saved generation {generationId}</CardDescription>
-          </div>
-          <Badge variant="secondary">Preview</Badge>
-        </div>
-      </CardHeader>
-      <CardContent>
-        <div className="flex flex-col gap-4 text-sm">
-          <PreviewBlock title="SEO title" value={output.seoTitle} />
-          <PreviewBlock title="Short description" value={output.shortDescription} />
-          <PreviewBlock title="Long description" value={output.longDescription} />
-          <PreviewBlock title="Benefits" value={output.bulletBenefits.join("\n")} />
-          <PreviewBlock title="Meta title" value={output.metaTitle} />
-          <PreviewBlock title="Meta description" value={output.metaDescription} />
-          <PreviewBlock title="Tags" value={output.tags.join(", ")} />
-          <PreviewBlock title="Image alt text" value={output.imageAltText} />
-          <PreviewBlock title="WooCommerce HTML" value={output.wooCommerceHtml} />
-        </div>
-      </CardContent>
-    </Card>
+    <ToolPreviewPanel
+      title="Output preview"
+      description={`Saved generation ${generationId}`}
+      badge={<Badge variant="secondary">Preview</Badge>}
+    >
+      <div className="flex flex-col gap-3 text-sm">
+        <PreviewBlock title="SEO title" value={output.seoTitle} />
+        <PreviewBlock title="Short description" value={output.shortDescription} />
+        <PreviewBlock title="Long description" value={output.longDescription} />
+        <PreviewBlock title="Benefits" value={output.bulletBenefits.join("\n")} />
+        <PreviewBlock title="Meta title" value={output.metaTitle} />
+        <PreviewBlock title="Meta description" value={output.metaDescription} />
+        <PreviewBlock title="Tags" value={output.tags.join(", ")} />
+        <PreviewBlock title="Image alt text" value={output.imageAltText} />
+        <PreviewBlock title="WooCommerce HTML" value={output.wooCommerceHtml} />
+      </div>
+    </ToolPreviewPanel>
   );
 }

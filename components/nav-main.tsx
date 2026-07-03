@@ -46,8 +46,10 @@ export function NavMain({
       <SidebarMenu>
         {items.map((item) => {
           const Icon = item.icon;
-          const isActive = pathname === item.url;
           const hasItems = Boolean(item.items?.length);
+          const isActive = hasItems
+            ? item.items?.some((subItem) => pathname === subItem.url)
+            : pathname === item.url;
 
           if (!hasItems) {
             return (
@@ -72,7 +74,12 @@ export function NavMain({
               render={<SidebarMenuItem />}
             >
               <CollapsibleTrigger
-                render={<SidebarMenuButton tooltip={item.title} />}
+                render={
+                  <SidebarMenuButton
+                    tooltip={item.title}
+                    isActive={isActive}
+                  />
+                }
               >
                 <Icon />
                 <span>{item.title}</span>

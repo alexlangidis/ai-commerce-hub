@@ -44,7 +44,7 @@ export function HistoryOutput({
 
   if (!fields.length) {
     return (
-      <pre className="overflow-x-auto rounded-lg bg-muted p-3 text-xs">
+      <pre className="app-panel overflow-x-auto rounded-xl p-3 text-xs">
         {JSON.stringify(output, null, 2)}
       </pre>
     );
@@ -53,9 +53,9 @@ export function HistoryOutput({
   return (
     <div className="flex flex-col gap-3">
       {fields.slice(0, compact ? 3 : fields.length).map((field) => (
-        <section key={field.label} className="rounded-lg bg-muted p-3">
+        <section key={field.label} className="app-panel rounded-xl p-4">
           <div className="mb-2 flex items-center justify-between gap-3">
-            <h3 className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+            <h3 className="text-xs font-medium tracking-wide text-primary uppercase">
               {field.label}
             </h3>
             <CopyButton value={field.value} />
