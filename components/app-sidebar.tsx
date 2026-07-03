@@ -74,7 +74,7 @@ const navItems = [
   },
   {
     title: "History",
-    url: "/dashboard",
+    url: "/dashboard/history",
     icon: SearchCheckIcon,
   },
 ];

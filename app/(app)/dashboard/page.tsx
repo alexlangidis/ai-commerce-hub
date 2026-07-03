@@ -53,7 +53,8 @@ const modules = [
     title: "History / Versions",
     description:
       "Save each generation with input, output, tone, language, model, and compare versions.",
-    status: "Planned",
+    status: "Ready",
+    href: "/dashboard/history",
   },
 ];
 
