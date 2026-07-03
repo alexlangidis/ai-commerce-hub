@@ -36,6 +36,7 @@ import {
   type ProductContentInput,
   type ProductContentOutput,
 } from "@/features/product-content-generator/schema";
+import { PreviewBlock } from "@/features/shared/PreviewBlock";
 
 type SelectFieldName = "category" | "targetLanguage" | "tone";
 
@@ -300,28 +301,17 @@ function ProductContentPreview({
       </CardHeader>
       <CardContent>
         <div className="flex flex-col gap-4 text-sm">
-          <PreviewBlock title="SEO title" content={output.seoTitle} />
-          <PreviewBlock title="Short description" content={output.shortDescription} />
-          <PreviewBlock title="Long description" content={output.longDescription} />
-          <PreviewBlock title="Benefits" content={output.bulletBenefits.join("\n")} />
-          <PreviewBlock title="Meta title" content={output.metaTitle} />
-          <PreviewBlock title="Meta description" content={output.metaDescription} />
-          <PreviewBlock title="Tags" content={output.tags.join(", ")} />
-          <PreviewBlock title="Image alt text" content={output.imageAltText} />
-          <PreviewBlock title="WooCommerce HTML" content={output.wooCommerceHtml} />
+          <PreviewBlock title="SEO title" value={output.seoTitle} />
+          <PreviewBlock title="Short description" value={output.shortDescription} />
+          <PreviewBlock title="Long description" value={output.longDescription} />
+          <PreviewBlock title="Benefits" value={output.bulletBenefits.join("\n")} />
+          <PreviewBlock title="Meta title" value={output.metaTitle} />
+          <PreviewBlock title="Meta description" value={output.metaDescription} />
+          <PreviewBlock title="Tags" value={output.tags.join(", ")} />
+          <PreviewBlock title="Image alt text" value={output.imageAltText} />
+          <PreviewBlock title="WooCommerce HTML" value={output.wooCommerceHtml} />
         </div>
       </CardContent>
     </Card>
-  );
-}
-
-function PreviewBlock({ title, content }: { title: string; content: string }) {
-  return (
-    <section className="flex flex-col gap-1 rounded-lg bg-muted p-3">
-      <h3 className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-        {title}
-      </h3>
-      <p className="whitespace-pre-wrap leading-6">{content}</p>
-    </section>
   );
 }

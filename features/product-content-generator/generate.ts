@@ -1,5 +1,5 @@
 import {
-  GEMINI_PRODUCT_CONTENT_MODEL,
+  GEMINI_TEXT_MODEL,
   generateProductContentWithGemini,
   hasGeminiApiKey,
 } from "@/lib/ai/gemini";
@@ -27,7 +27,7 @@ export async function generateProductContentOutput({
   brandVoice: BrandVoiceContext;
 }) {
   const model = hasGeminiApiKey()
-    ? GEMINI_PRODUCT_CONTENT_MODEL
+    ? GEMINI_TEXT_MODEL
     : PRODUCT_CONTENT_PREVIEW_MODEL;
   const output = hasGeminiApiKey()
     ? await generateProductContentWithGemini({

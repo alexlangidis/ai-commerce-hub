@@ -6,7 +6,7 @@ import { useTransition } from "react";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
-import { regenerateProductGeneration } from "@/features/history/actions";
+import { regenerateGeneration } from "@/features/history/actions";
 
 export function RegenerateButton({
   generationId,
@@ -21,7 +21,7 @@ export function RegenerateButton({
   function handleRegenerate() {
     startTransition(async () => {
       try {
-        const result = await regenerateProductGeneration(generationId);
+        const result = await regenerateGeneration(generationId);
         toast.success(`Version ${result.versionNumber} generated.`);
         router.refresh();
       } catch (error) {

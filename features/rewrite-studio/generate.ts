@@ -1,5 +1,5 @@
 import {
-  GEMINI_PRODUCT_CONTENT_MODEL,
+  GEMINI_TEXT_MODEL,
   generateJsonWithGemini,
   hasGeminiApiKey,
   type BrandVoiceContext,
@@ -21,7 +21,7 @@ export async function generateRewriteStudioOutput({
   brandVoice: BrandVoiceContext;
 }) {
   const model = hasGeminiApiKey()
-    ? GEMINI_PRODUCT_CONTENT_MODEL
+    ? GEMINI_TEXT_MODEL
     : REWRITE_STUDIO_PREVIEW_MODEL;
   const output = hasGeminiApiKey()
     ? await generateJsonWithGemini({

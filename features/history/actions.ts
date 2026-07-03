@@ -27,7 +27,7 @@ import { translationStudioInputSchema } from "@/features/translation-studio/sche
 import { db } from "@/lib/db";
 import { requireSession } from "@/lib/session";
 
-export async function regenerateProductGeneration(generationId: string) {
+export async function regenerateGeneration(generationId: string) {
   const session = await requireSession();
   const generation = await db.query.generations.findFirst({
     where: and(

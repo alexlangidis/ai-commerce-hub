@@ -34,6 +34,7 @@ import {
   type TranslationStudioInput,
   type TranslationStudioOutput,
 } from "@/features/translation-studio/schema";
+import { PreviewBlock } from "@/features/shared/PreviewBlock";
 
 type SelectName = "sourceLanguage" | "targetLanguage" | "mode";
 
@@ -224,16 +225,5 @@ function TranslationPreview({
         </div>
       </CardContent>
     </Card>
-  );
-}
-
-function PreviewBlock({ title, value }: { title: string; value: string }) {
-  return (
-    <section className="rounded-lg bg-muted p-3">
-      <h3 className="mb-2 text-xs font-medium uppercase tracking-wide text-muted-foreground">
-        {title}
-      </h3>
-      <p className="whitespace-pre-wrap leading-6">{value}</p>
-    </section>
   );
 }

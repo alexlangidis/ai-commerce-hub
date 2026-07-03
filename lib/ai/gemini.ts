@@ -8,7 +8,7 @@ import {
   type ProductContentOutput,
 } from "@/features/product-content-generator/schema";
 
-export const GEMINI_PRODUCT_CONTENT_MODEL = "gemini-3.1-flash-lite";
+export const GEMINI_TEXT_MODEL = "gemini-3.1-flash-lite";
 
 export type BrandVoiceContext = {
   language?: string;
@@ -52,7 +52,7 @@ export async function generateJsonWithGemini<TSchema extends z.ZodType>({
   }
 
   const response = await client.models.generateContent({
-    model: GEMINI_PRODUCT_CONTENT_MODEL,
+    model: GEMINI_TEXT_MODEL,
     contents: prompt,
     config: {
       temperature: 0.7,
@@ -80,40 +80,40 @@ export async function generateProductContentWithGemini({
     prompt: buildProductContentPrompt(input, brandVoice),
     zodSchema: productContentOutputSchema,
     responseSchema: {
-        type: "object",
-        additionalProperties: false,
-        required: [
-          "seoTitle",
-          "shortDescription",
-          "longDescription",
-          "bulletBenefits",
-          "metaTitle",
-          "metaDescription",
-          "tags",
-          "imageAltText",
-          "wooCommerceHtml",
-        ],
-        properties: {
-          seoTitle: { type: "string" },
-          shortDescription: { type: "string" },
-          longDescription: { type: "string" },
-          bulletBenefits: {
-            type: "array",
-            minItems: 4,
-            maxItems: 6,
-            items: { type: "string" },
-          },
-          metaTitle: { type: "string" },
-          metaDescription: { type: "string" },
-          tags: {
-            type: "array",
-            minItems: 5,
-            maxItems: 10,
-            items: { type: "string" },
-          },
-          imageAltText: { type: "string" },
-          wooCommerceHtml: { type: "string" },
+      type: "object",
+      additionalProperties: false,
+      required: [
+        "seoTitle",
+        "shortDescription",
+        "longDescription",
+        "bulletBenefits",
+        "metaTitle",
+        "metaDescription",
+        "tags",
+        "imageAltText",
+        "wooCommerceHtml",
+      ],
+      properties: {
+        seoTitle: { type: "string" },
+        shortDescription: { type: "string" },
+        longDescription: { type: "string" },
+        bulletBenefits: {
+          type: "array",
+          minItems: 4,
+          maxItems: 6,
+          items: { type: "string" },
         },
+        metaTitle: { type: "string" },
+        metaDescription: { type: "string" },
+        tags: {
+          type: "array",
+          minItems: 5,
+          maxItems: 10,
+          items: { type: "string" },
+        },
+        imageAltText: { type: "string" },
+        wooCommerceHtml: { type: "string" },
+      },
     },
   });
 }
