@@ -17,6 +17,8 @@ import {
   HistoryOutput,
 } from "@/features/history/HistoryOutput";
 import { getHistoryGenerationDetail } from "@/features/history/queries";
+import { RegenerateButton } from "@/features/history/RegenerateButton";
+import { PRODUCT_CONTENT_TOOL_NAME } from "@/features/product-content-generator/generate";
 
 export default async function HistoryDetailPage({
   params,
@@ -34,6 +36,7 @@ export default async function HistoryDetailPage({
     generation.input,
     `Generation ${generation.id.slice(0, 8)}`,
   );
+  const canRegenerate = generation.tool === PRODUCT_CONTENT_TOOL_NAME;
 
   return (
     <main className="flex flex-1 flex-col gap-6 p-4 md:p-6">
@@ -61,13 +64,19 @@ export default async function HistoryDetailPage({
               </Badge>
             </div>
           </div>
-          <Button
-            nativeButton={false}
-            variant="outline"
-            render={<Link href="/dashboard/history" />}
-          >
-            Back to history
-          </Button>
+          <div className="flex flex-col gap-2 sm:flex-row">
+            <RegenerateButton
+              generationId={generation.id}
+              disabled={!canRegenerate}
+            />
+            <Button
+              nativeButton={false}
+              variant="outline"
+              render={<Link href="/dashboard/history" />}
+            >
+              Back to history
+            </Button>
+          </div>
         </div>
       </section>
 
@@ -119,7 +128,8 @@ export default async function HistoryDetailPage({
         <div className="flex flex-col gap-1">
           <h2 className="text-xl font-semibold tracking-tight">Versions</h2>
           <p className="text-sm text-muted-foreground">
-            Regeneration will add more versions here later.
+            Regeneration adds a new version and promotes it to the latest
+            output.
           </p>
         </div>
         {generation.versions.map((version) => (
