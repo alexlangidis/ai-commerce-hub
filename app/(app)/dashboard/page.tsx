@@ -1,38 +1,136 @@
+import Link from "next/link";
+
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+
+const modules = [
+  {
+    title: "Product Content Generator",
+    description:
+      "Create SEO titles, descriptions, benefits, tags, alt text, and WooCommerce HTML.",
+    status: "Next",
+  },
+  {
+    title: "Rewrite Studio",
+    description:
+      "Improve pasted product copy with professional, shorter, sales, technical, luxury, and Greek modes.",
+    status: "Planned",
+  },
+  {
+    title: "SEO Optimizer",
+    description:
+      "Score titles and descriptions, find missing keywords, and generate improved versions.",
+    status: "Planned",
+  },
+  {
+    title: "Translation Studio",
+    description:
+      "Translate and localize e-commerce content for Greek, English, German, French, Italian, and Spanish.",
+    status: "Planned",
+  },
+  {
+    title: "Prompt Templates",
+    description:
+      "Start from ready templates for accessories, beauty, fashion, fitness, and more.",
+    status: "Planned",
+  },
+  {
+    title: "Brand Voice",
+    description:
+      "Control language, tone, style, claims to avoid, and the preferred CTA for all AI outputs.",
+    status: "Ready",
+    href: "/dashboard/brand-voice",
+  },
+  {
+    title: "History / Versions",
+    description:
+      "Save each generation with input, output, tone, language, model, and compare versions.",
+    status: "Planned",
+  },
+];
+
 export default function DashboardPage() {
   return (
-    <main className="mx-auto flex w-full max-w-6xl flex-1 flex-col gap-8 px-6 py-10">
-      <section className="flex flex-col gap-3">
-        <p className="text-sm font-medium uppercase tracking-[0.16em] text-zinc-500 dark:text-zinc-400">
-          Dashboard
-        </p>
-        <h1 className="text-3xl font-semibold text-zinc-950 dark:text-zinc-50">
-          Welcome to your workspace
-        </h1>
-        <p className="max-w-2xl text-base leading-7 text-zinc-600 dark:text-zinc-400">
-          This protected area is ready for the commerce features. Every route
-          inside `app/(app)` will require a valid Better Auth session.
-        </p>
+    <main className="flex flex-1 flex-col gap-6 p-4 md:p-6">
+      <section className="rounded-xl border bg-card p-6 text-card-foreground shadow-sm">
+        <div className="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
+          <div className="flex max-w-3xl flex-col gap-3">
+            <Badge variant="secondary" className="w-fit">
+              AI commerce workspace
+            </Badge>
+            <h1 className="text-3xl font-semibold tracking-tight">
+              Build product content faster, with one shared brand voice.
+            </h1>
+            <p className="text-base leading-7 text-muted-foreground">
+              The foundation is ready: Better Auth, Neon, Drizzle, protected
+              routes, Brand Voice, and generation history tables. Next we build
+              the AI tools on top of this structure.
+            </p>
+          </div>
+          <Button
+            nativeButton={false}
+            render={<Link href="/dashboard/brand-voice" />}
+          >
+            Set Brand Voice
+          </Button>
+        </div>
       </section>
 
-      <section className="grid gap-4 sm:grid-cols-3">
-        <div className="rounded-lg border border-black/10 bg-white p-5 dark:border-white/10 dark:bg-zinc-950">
-          <p className="text-sm text-zinc-500 dark:text-zinc-400">Auth</p>
-          <p className="mt-2 text-lg font-medium text-zinc-950 dark:text-zinc-50">
-            Session active
-          </p>
-        </div>
-        <div className="rounded-lg border border-black/10 bg-white p-5 dark:border-white/10 dark:bg-zinc-950">
-          <p className="text-sm text-zinc-500 dark:text-zinc-400">Database</p>
-          <p className="mt-2 text-lg font-medium text-zinc-950 dark:text-zinc-50">
-            Neon connected
-          </p>
-        </div>
-        <div className="rounded-lg border border-black/10 bg-white p-5 dark:border-white/10 dark:bg-zinc-950">
-          <p className="text-sm text-zinc-500 dark:text-zinc-400">Next</p>
-          <p className="mt-2 text-lg font-medium text-zinc-950 dark:text-zinc-50">
-            Protected route
-          </p>
-        </div>
+      <section className="grid gap-4 md:grid-cols-3">
+        <Card>
+          <CardHeader>
+            <CardDescription>Auth</CardDescription>
+            <CardTitle>Better Auth active</CardTitle>
+          </CardHeader>
+        </Card>
+        <Card>
+          <CardHeader>
+            <CardDescription>Database</CardDescription>
+            <CardTitle>Neon + Drizzle ready</CardTitle>
+          </CardHeader>
+        </Card>
+        <Card>
+          <CardHeader>
+            <CardDescription>UI</CardDescription>
+            <CardTitle>shadcn sidebar shell</CardTitle>
+          </CardHeader>
+        </Card>
+      </section>
+
+      <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+        {modules.map((module) => (
+          <Card key={module.title}>
+            <CardHeader>
+              <div className="flex items-start justify-between gap-3">
+                <CardTitle>{module.title}</CardTitle>
+                <Badge
+                  variant={module.status === "Ready" ? "default" : "outline"}
+                >
+                  {module.status}
+                </Badge>
+              </div>
+              <CardDescription>{module.description}</CardDescription>
+            </CardHeader>
+            {module.href ? (
+              <CardContent>
+                <Button
+                  nativeButton={false}
+                  variant="outline"
+                  render={<Link href={module.href} />}
+                >
+                  Open
+                </Button>
+              </CardContent>
+            ) : null}
+          </Card>
+        ))}
       </section>
     </main>
   );

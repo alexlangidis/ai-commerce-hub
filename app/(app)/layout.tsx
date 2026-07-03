@@ -1,6 +1,17 @@
-import Link from "next/link";
-
-import { SignOutButton } from "@/components/SignOutButton";
+import { AppSidebar } from "@/components/app-sidebar";
+import {
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbList,
+  BreadcrumbPage,
+} from "@/components/ui/breadcrumb";
+import { Separator } from "@/components/ui/separator";
+import {
+  SidebarInset,
+  SidebarProvider,
+  SidebarTrigger,
+} from "@/components/ui/sidebar";
+import { TooltipProvider } from "@/components/ui/tooltip";
 import { requireSession } from "@/lib/session";
 
 export default async function AppLayout({
@@ -11,40 +22,32 @@ export default async function AppLayout({
   const session = await requireSession();
 
   return (
-    <div className="flex min-h-full flex-1 flex-col bg-zinc-50 dark:bg-black">
-      <header className="border-b border-black/10 bg-white dark:border-white/10 dark:bg-zinc-950">
-        <div className="mx-auto flex w-full max-w-6xl flex-col gap-4 px-6 py-4 sm:flex-row sm:items-center sm:justify-between">
-          <div className="flex flex-col gap-1">
-            <Link
-              href="/dashboard"
-              className="text-lg font-semibold text-zinc-950 dark:text-zinc-50"
-            >
-              AI Commerce Hub
-            </Link>
-            <p className="text-sm text-zinc-600 dark:text-zinc-400">
-              {session.user.email}
-            </p>
-          </div>
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-            <nav className="flex gap-3 text-sm font-medium text-zinc-600 dark:text-zinc-400">
-              <Link
-                href="/dashboard"
-                className="transition hover:text-zinc-950 dark:hover:text-zinc-50"
-              >
-                Dashboard
-              </Link>
-              <Link
-                href="/dashboard/brand-voice"
-                className="transition hover:text-zinc-950 dark:hover:text-zinc-50"
-              >
-                Brand Voice
-              </Link>
-            </nav>
-            <SignOutButton />
-          </div>
-        </div>
-      </header>
-      {children}
-    </div>
+    <TooltipProvider>
+      <SidebarProvider>
+        <AppSidebar
+          user={{
+            name: session.user.name,
+            email: session.user.email,
+          }}
+        />
+        <SidebarInset>
+          <header className="flex h-16 shrink-0 items-center gap-2 border-b px-4 transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-12">
+            <SidebarTrigger className="-ml-1" />
+            <Separator
+              orientation="vertical"
+              className="mr-2 data-vertical:h-4 data-vertical:self-auto"
+            />
+            <Breadcrumb>
+              <BreadcrumbList>
+                <BreadcrumbItem>
+                  <BreadcrumbPage>Workspace</BreadcrumbPage>
+                </BreadcrumbItem>
+              </BreadcrumbList>
+            </Breadcrumb>
+          </header>
+          {children}
+        </SidebarInset>
+      </SidebarProvider>
+    </TooltipProvider>
   );
 }

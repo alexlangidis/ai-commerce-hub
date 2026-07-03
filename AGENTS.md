@@ -59,6 +59,13 @@ This project should stay simple enough for a junior developer to follow. Prefer 
 - Use Lucide icons for icon buttons and common actions.
 - Keep forms and dashboards practical, compact, and readable. Avoid decorative layouts before the app needs them.
 
+## User feedback
+
+- Use Sonner for non-field feedback such as save success, failed mutations, copied-to-clipboard, and background action results.
+- Mount the global Sonner `<Toaster />` once in the root layout. Do not add multiple toaster instances in feature components.
+- Prefer `toast.success(...)`, `toast.error(...)`, or `toast.promise(...)` for async actions instead of inline success boxes.
+- Keep field-level validation beside the field. Use Sonner only for form-level or action-level feedback.
+
 ## Forms and validation
 
 - Use React Hook Form for user-submitted forms.

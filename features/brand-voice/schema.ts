@@ -1,5 +1,51 @@
 import { z } from "zod";
 
+export const languageOptions = [
+  "Greek",
+  "English",
+  "German",
+  "French",
+  "Italian",
+  "Spanish",
+] as const;
+
+export const toneOptions = [
+  "Professional",
+  "Friendly",
+  "Sales-focused",
+  "Technical",
+  "Luxury",
+  "Clear and helpful",
+  "Minimal",
+] as const;
+
+export const styleOptions = [
+  "Clear, helpful, not exaggerated",
+  "Short and direct for product pages",
+  "Premium and polished, without fake claims",
+  "Technical and specification-focused",
+  "Warm, practical, and customer-friendly",
+  "SEO-focused but natural",
+] as const;
+
+export const avoidOptions = [
+  "Fake claims, too many emojis",
+  "Overpromising, aggressive sales language",
+  "Long paragraphs, vague benefits",
+  "Medical or guaranteed result claims",
+  "Too much hype, too many exclamation marks",
+  "Unsupported sustainability claims",
+] as const;
+
+export const preferredCtaOptions = [
+  "Είμαστε στη διάθεσή σας για οποιαδήποτε πληροφορία.",
+  "Ανακαλύψτε το σήμερα.",
+  "Επιλέξτε το προϊόν που ταιριάζει στις ανάγκες σας.",
+  "Contact us for more information.",
+  "Add it to your collection today.",
+  "Choose the option that fits your needs.",
+] as const;
+
 export const brandVoiceSchema = z.object({
   language: z.string().trim().min(2, "Language is required."),
   tone: z.string().trim().min(2, "Tone is required."),

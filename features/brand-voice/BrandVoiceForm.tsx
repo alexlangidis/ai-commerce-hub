@@ -2,13 +2,35 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
-import { useForm, type UseFormRegisterReturn } from "react-hook-form";
+import { Controller, useForm, useWatch, type Control } from "react-hook-form";
+import { toast } from "sonner";
 
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectLabel,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { saveBrandVoice } from "@/features/brand-voice/actions";
 import {
+  avoidOptions,
   brandVoiceSchema,
   defaultBrandVoiceValues,
+  languageOptions,
+  preferredCtaOptions,
+  styleOptions,
+  toneOptions,
   type BrandVoiceValues,
 } from "@/features/brand-voice/schema";
 
@@ -16,118 +38,187 @@ type BrandVoiceFormProps = {
   initialValues?: BrandVoiceValues;
 };
 
+type SelectFieldName = "language" | "tone" | "style" | "avoid" | "preferredCta";
+
 export function BrandVoiceForm({ initialValues }: BrandVoiceFormProps) {
   const router = useRouter();
-  const [status, setStatus] = useState("");
   const {
-    register,
+    control,
     handleSubmit,
     formState: { errors, isSubmitting },
   } = useForm<BrandVoiceValues>({
     resolver: zodResolver(brandVoiceSchema),
     defaultValues: initialValues ?? defaultBrandVoiceValues,
   });
+  const previewValues = useWatch({ control });
 
   async function onSubmit(values: BrandVoiceValues) {
-    setStatus("");
-    await saveBrandVoice(values);
-    setStatus("Brand voice saved.");
-    router.refresh();
+    try {
+      await saveBrandVoice(values);
+      toast.success("Brand voice saved.");
+      router.refresh();
+    } catch {
+      toast.error("Could not save brand voice. Please try again.");
+    }
   }
 
   return (
-    <form
-      onSubmit={handleSubmit(onSubmit)}
-      className="flex w-full max-w-2xl flex-col gap-5 rounded-lg border border-black/10 bg-white p-6 dark:border-white/10 dark:bg-zinc-950"
-    >
-      <Field
-        label="Language"
-        error={errors.language?.message}
-        inputProps={register("language")}
-      />
-      <Field
-        label="Tone"
-        error={errors.tone?.message}
-        inputProps={register("tone")}
-      />
-      <TextAreaField
-        label="Style"
-        error={errors.style?.message}
-        inputProps={register("style")}
-      />
-      <TextAreaField
-        label="Avoid"
-        error={errors.avoid?.message}
-        inputProps={register("avoid")}
-      />
-      <TextAreaField
-        label="Preferred CTA"
-        error={errors.preferredCta?.message}
-        inputProps={register("preferredCta")}
-      />
+    <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_360px]">
+      <Card>
+        <CardHeader>
+          <CardTitle>Brand rules</CardTitle>
+          <CardDescription>
+            Choose presets first. Adjust the detail fields only when the brand
+            needs something more specific.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-5">
+            <div className="grid gap-4 md:grid-cols-2">
+              <SelectField
+                control={control}
+                name="language"
+                label="Default language"
+                description="The language AI outputs should prefer."
+                options={languageOptions}
+                error={errors.language?.message}
+              />
+              <SelectField
+                control={control}
+                name="tone"
+                label="Tone"
+                description="How the copy should sound."
+                options={toneOptions}
+                error={errors.tone?.message}
+              />
+            </div>
 
-      {status ? (
-        <p className="rounded-md border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm text-emerald-800 dark:border-emerald-900/60 dark:bg-emerald-950/40 dark:text-emerald-200">
-          {status}
-        </p>
-      ) : null}
+            <SelectField
+              control={control}
+              name="style"
+              label="Writing style"
+              description="Pick the closest style for product descriptions and rewrites."
+              options={styleOptions}
+              error={errors.style?.message}
+            />
 
-      <button
-        type="submit"
-        disabled={isSubmitting}
-        className="h-11 rounded-md bg-zinc-950 px-4 text-sm font-medium text-white transition hover:bg-zinc-800 disabled:cursor-not-allowed disabled:opacity-60 dark:bg-zinc-50 dark:text-zinc-950 dark:hover:bg-zinc-200"
-      >
-        {isSubmitting ? "Saving..." : "Save brand voice"}
-      </button>
-    </form>
+            <SelectField
+              control={control}
+              name="avoid"
+              label="Avoid"
+              description="The main things AI should not include."
+              options={avoidOptions}
+              error={errors.avoid?.message}
+            />
+
+            <SelectField
+              control={control}
+              name="preferredCta"
+              label="Preferred CTA"
+              description="Reusable call-to-action for generated product copy."
+              options={preferredCtaOptions}
+              error={errors.preferredCta?.message}
+            />
+
+            <div className="flex flex-col gap-3 border-t pt-5 sm:flex-row sm:items-center sm:justify-between">
+              <p className="text-sm text-muted-foreground">
+                These settings will be reused by Product Generator, Rewrite,
+                SEO, and Translation tools.
+              </p>
+              <Button type="submit" disabled={isSubmitting}>
+                {isSubmitting ? "Saving..." : "Save brand voice"}
+              </Button>
+            </div>
+          </form>
+        </CardContent>
+      </Card>
+
+      <Card className="h-fit lg:sticky lg:top-20">
+        <CardHeader>
+          <CardTitle>AI output preview</CardTitle>
+          <CardDescription>
+            This is the instruction profile future AI tools will follow.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <dl className="flex flex-col gap-4 text-sm">
+            <PreviewRow label="Language" value={previewValues.language} />
+            <PreviewRow label="Tone" value={previewValues.tone} />
+            <PreviewRow label="Style" value={previewValues.style} />
+            <PreviewRow label="Avoid" value={previewValues.avoid} />
+            <PreviewRow label="CTA" value={previewValues.preferredCta} />
+          </dl>
+        </CardContent>
+      </Card>
+    </div>
   );
 }
 
-type FieldProps = {
+function SelectField({
+  control,
+  name,
+  label,
+  description,
+  options,
+  error,
+}: {
+  control: Control<BrandVoiceValues>;
+  name: SelectFieldName;
   label: string;
+  description: string;
+  options: readonly string[];
   error?: string;
-  inputProps: UseFormRegisterReturn;
-};
+}) {
+  const items = options.map((option) => ({
+    label: option,
+    value: option,
+  }));
 
-function Field({ label, error, inputProps }: FieldProps) {
   return (
-    <label className="flex flex-col gap-2 text-sm font-medium text-zinc-800 dark:text-zinc-200">
-      {label}
-      <input
-        {...inputProps}
-        aria-invalid={Boolean(error)}
-        className="h-11 rounded-md border border-black/10 bg-transparent px-3 text-base text-zinc-950 outline-none transition focus:border-zinc-950 dark:border-white/15 dark:text-zinc-50 dark:focus:border-zinc-50"
+    <div className="flex flex-col gap-2">
+      <div className="flex flex-col gap-1">
+        <label className="text-sm font-medium" htmlFor={name}>
+          {label}
+        </label>
+        <p className="text-sm text-muted-foreground">{description}</p>
+      </div>
+      <Controller
+        control={control}
+        name={name}
+        render={({ field }) => (
+          <Select
+            items={items}
+            value={field.value}
+            onValueChange={(value) => field.onChange(value ?? "")}
+          >
+            <SelectTrigger id={name} aria-invalid={Boolean(error)} className="w-full">
+              <SelectValue placeholder={`Select ${label.toLowerCase()}`} />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectGroup>
+                <SelectLabel>{label}</SelectLabel>
+                {items.map((item) => (
+                  <SelectItem key={item.value} value={item.value}>
+                    {item.label}
+                  </SelectItem>
+                ))}
+              </SelectGroup>
+            </SelectContent>
+          </Select>
+        )}
       />
-      {error ? (
-        <span className="text-sm font-normal text-red-600 dark:text-red-300">
-          {error}
-        </span>
-      ) : null}
-    </label>
+      {error ? <p className="text-sm text-destructive">{error}</p> : null}
+    </div>
   );
 }
 
-type TextAreaFieldProps = {
-  label: string;
-  error?: string;
-  inputProps: UseFormRegisterReturn;
-};
-
-function TextAreaField({ label, error, inputProps }: TextAreaFieldProps) {
+function PreviewRow({ label, value }: { label: string; value?: string }) {
   return (
-    <label className="flex flex-col gap-2 text-sm font-medium text-zinc-800 dark:text-zinc-200">
-      {label}
-      <textarea
-        {...inputProps}
-        rows={3}
-        aria-invalid={Boolean(error)}
-        className="min-h-24 rounded-md border border-black/10 bg-transparent px-3 py-2 text-base text-zinc-950 outline-none transition focus:border-zinc-950 dark:border-white/15 dark:text-zinc-50 dark:focus:border-zinc-50"
-      />
-      {error ? (
-        <span className="text-sm font-normal text-red-600 dark:text-red-300">
-          {error}
-        </span>
-      ) : null}
-    </label>
+    <div className="flex flex-col gap-1 rounded-lg bg-muted p-3">
+      <dt className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+        {label}
+      </dt>
+      <dd className="leading-6">{value || "Not set"}</dd>
+    </div>
   );
 }
