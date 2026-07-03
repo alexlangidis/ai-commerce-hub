@@ -18,6 +18,12 @@ export default function Home() {
           </p>
         </div>
         <AuthStatus />
+        <a
+          href="/dashboard"
+          className="text-sm font-medium text-zinc-600 underline underline-offset-4 transition hover:text-zinc-950 dark:text-zinc-400 dark:hover:text-zinc-50"
+        >
+          Open protected dashboard
+        </a>
       </div>
     </main>
   );

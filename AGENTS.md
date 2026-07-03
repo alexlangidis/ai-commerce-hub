@@ -34,6 +34,7 @@ This project should stay simple enough for a junior developer to follow. Prefer 
 
 - `app/`: routes, layouts, route groups, and route handlers.
 - `app/(auth)/`: login/signup and other auth UI pages. Route groups must not change public URLs.
+- `app/(app)/`: authenticated app pages. Protect this group with `requireSession()`.
 - `app/api/`: server route handlers only. Keep Better Auth at `app/api/auth/[...all]/route.ts`.
 - `components/`: app-level reusable components.
 - `components/ui/`: shadcn/ui components only. Do not mix feature components here.
@@ -71,6 +72,7 @@ This project should stay simple enough for a junior developer to follow. Prefer 
 - Use Better Auth for all authentication.
 - Use `authClient` from `lib/auth-client.ts` in Client Components.
 - Use `auth` from `lib/auth.ts` on the server.
+- Use `getCurrentSession()` and `requireSession()` from `lib/session.ts` for server-side session checks.
 - Keep login and signup pages under `app/(auth)`.
 - Do not add Neon Auth. Neon is the database; Better Auth owns authentication.
 
