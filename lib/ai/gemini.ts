@@ -6,7 +6,7 @@ import {
   type ProductContentOutput,
 } from "@/features/product-content-generator/schema";
 
-export const GEMINI_PRODUCT_CONTENT_MODEL = "gemini-2.5-flash";
+export const GEMINI_PRODUCT_CONTENT_MODEL = "gemini-3.5-flash";
 
 type BrandVoiceContext = {
   language?: string;
