@@ -15,7 +15,8 @@ const modules = [
     title: "Product Content Generator",
     description:
       "Create SEO titles, descriptions, benefits, tags, alt text, and WooCommerce HTML.",
-    status: "Next",
+    status: "Ready",
+    href: "/dashboard/product-generator",
   },
   {
     title: "Rewrite Studio",

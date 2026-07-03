@@ -46,7 +46,7 @@ const navItems = [
     items: [
       {
         title: "Product Content Generator",
-        url: "/dashboard",
+        url: "/dashboard/product-generator",
       },
       {
         title: "Rewrite Studio",
