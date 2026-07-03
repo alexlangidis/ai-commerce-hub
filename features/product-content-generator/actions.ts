@@ -11,6 +11,11 @@ import {
   type ProductContentResult,
 } from "@/features/product-content-generator/schema";
 import { db } from "@/lib/db";
+import {
+  GEMINI_PRODUCT_CONTENT_MODEL,
+  generateProductContentWithGemini,
+  hasGeminiApiKey,
+} from "@/lib/ai/gemini";
 import { requireSession } from "@/lib/session";
 
 const TOOL_NAME = "product-content-generator";
@@ -24,10 +29,22 @@ export async function createProductContent(
   const brandProfile = await db.query.brandProfiles.findFirst({
     where: eq(brandProfiles.userId, session.user.id),
   });
-  const output = buildProductContent(values, {
+  const brandVoice = {
+    language: brandProfile?.language,
+    tone: brandProfile?.tone,
+    style: brandProfile?.style,
     preferredCta: brandProfile?.preferredCta,
     avoid: brandProfile?.avoid,
-  });
+  };
+  const model = hasGeminiApiKey()
+    ? GEMINI_PRODUCT_CONTENT_MODEL
+    : PREVIEW_MODEL;
+  const output = hasGeminiApiKey()
+    ? await generateProductContentWithGemini({
+        input: values,
+        brandVoice,
+      })
+    : buildProductContent(values, brandVoice);
 
   const [generation] = await db
     .insert(generations)
@@ -39,7 +56,7 @@ export async function createProductContent(
       output,
       tone: values.tone,
       language: values.targetLanguage,
-      model: PREVIEW_MODEL,
+      model,
     })
     .returning({ id: generations.id });
 
@@ -48,7 +65,7 @@ export async function createProductContent(
     versionNumber: 1,
     input: values,
     output,
-    model: PREVIEW_MODEL,
+    model,
   });
 
   revalidatePath("/dashboard/product-generator");
@@ -62,6 +79,9 @@ export async function createProductContent(
 function buildProductContent(
   input: ProductContentInput,
   brandVoice: {
+    language?: string;
+    tone?: string;
+    style?: string;
     preferredCta?: string;
     avoid?: string;
   },

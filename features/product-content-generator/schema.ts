@@ -54,6 +54,18 @@ export type ProductContentOutput = {
   wooCommerceHtml: string;
 };
 
+export const productContentOutputSchema = z.object({
+  seoTitle: z.string().trim().min(1),
+  shortDescription: z.string().trim().min(1),
+  longDescription: z.string().trim().min(1),
+  bulletBenefits: z.array(z.string().trim().min(1)).min(3).max(8),
+  metaTitle: z.string().trim().min(1),
+  metaDescription: z.string().trim().min(1),
+  tags: z.array(z.string().trim().min(1)).min(3).max(12),
+  imageAltText: z.string().trim().min(1),
+  wooCommerceHtml: z.string().trim().min(1),
+});
+
 export type ProductContentResult = {
   generationId: string;
   output: ProductContentOutput;
