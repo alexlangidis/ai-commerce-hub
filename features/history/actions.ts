@@ -9,6 +9,21 @@ import {
   PRODUCT_CONTENT_TOOL_NAME,
 } from "@/features/product-content-generator/generate";
 import { productContentInputSchema } from "@/features/product-content-generator/schema";
+import {
+  generateRewriteStudioOutput,
+  REWRITE_STUDIO_TOOL_NAME,
+} from "@/features/rewrite-studio/generate";
+import { rewriteStudioInputSchema } from "@/features/rewrite-studio/schema";
+import {
+  generateSeoOptimizerOutput,
+  SEO_OPTIMIZER_TOOL_NAME,
+} from "@/features/seo-optimizer/generate";
+import { seoOptimizerInputSchema } from "@/features/seo-optimizer/schema";
+import {
+  generateTranslationStudioOutput,
+  TRANSLATION_STUDIO_TOOL_NAME,
+} from "@/features/translation-studio/generate";
+import { translationStudioInputSchema } from "@/features/translation-studio/schema";
 import { db } from "@/lib/db";
 import { requireSession } from "@/lib/session";
 
@@ -32,24 +47,18 @@ export async function regenerateProductGeneration(generationId: string) {
     throw new Error("Generation not found.");
   }
 
-  if (generation.tool !== PRODUCT_CONTENT_TOOL_NAME) {
-    throw new Error("Only product content generations can be regenerated.");
-  }
-
-  const input = productContentInputSchema.parse(generation.input);
   const brandProfile = await db.query.brandProfiles.findFirst({
     where: eq(brandProfiles.userId, session.user.id),
   });
-  const { model, output } = await generateProductContentOutput({
-    input,
-    brandVoice: {
-      language: brandProfile?.language,
-      tone: brandProfile?.tone,
-      style: brandProfile?.style,
-      preferredCta: brandProfile?.preferredCta,
-      avoid: brandProfile?.avoid,
-    },
-  });
+  const brandVoice = {
+    language: brandProfile?.language,
+    tone: brandProfile?.tone,
+    style: brandProfile?.style,
+    preferredCta: brandProfile?.preferredCta,
+    avoid: brandProfile?.avoid,
+  };
+  const { input, model, output, tone, language } =
+    await regenerateByTool(generation.tool, generation.input, brandVoice);
   const nextVersionNumber =
     (generation.versions[0]?.versionNumber ?? 0) + 1;
 
@@ -66,8 +75,8 @@ export async function regenerateProductGeneration(generationId: string) {
     .set({
       output,
       model,
-      tone: input.tone,
-      language: input.targetLanguage,
+      tone,
+      language,
       brandProfileId: brandProfile?.id,
     })
     .where(
@@ -83,4 +92,82 @@ export async function regenerateProductGeneration(generationId: string) {
   return {
     versionNumber: nextVersionNumber,
   };
+}
+
+async function regenerateByTool(
+  tool: string,
+  rawInput: Record<string, unknown>,
+  brandVoice: {
+    language?: string;
+    tone?: string;
+    style?: string;
+    preferredCta?: string;
+    avoid?: string;
+  },
+) {
+  if (tool === PRODUCT_CONTENT_TOOL_NAME) {
+    const input = productContentInputSchema.parse(rawInput);
+    const { model, output } = await generateProductContentOutput({
+      input,
+      brandVoice,
+    });
+
+    return {
+      input,
+      model,
+      output,
+      tone: input.tone,
+      language: input.targetLanguage,
+    };
+  }
+
+  if (tool === REWRITE_STUDIO_TOOL_NAME) {
+    const input = rewriteStudioInputSchema.parse(rawInput);
+    const { model, output } = await generateRewriteStudioOutput({
+      input,
+      brandVoice,
+    });
+
+    return {
+      input,
+      model,
+      output,
+      tone: input.tone,
+      language: input.targetLanguage,
+    };
+  }
+
+  if (tool === SEO_OPTIMIZER_TOOL_NAME) {
+    const input = seoOptimizerInputSchema.parse(rawInput);
+    const { model, output } = await generateSeoOptimizerOutput({
+      input,
+      brandVoice,
+    });
+
+    return {
+      input,
+      model,
+      output,
+      tone: brandVoice.tone ?? "SEO",
+      language: input.targetLanguage,
+    };
+  }
+
+  if (tool === TRANSLATION_STUDIO_TOOL_NAME) {
+    const input = translationStudioInputSchema.parse(rawInput);
+    const { model, output } = await generateTranslationStudioOutput({
+      input,
+      brandVoice,
+    });
+
+    return {
+      input,
+      model,
+      output,
+      tone: input.mode,
+      language: input.targetLanguage,
+    };
+  }
+
+  throw new Error("This generation type cannot be regenerated yet.");
 }

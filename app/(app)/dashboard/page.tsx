@@ -22,25 +22,29 @@ const modules = [
     title: "Rewrite Studio",
     description:
       "Improve pasted product copy with professional, shorter, sales, technical, luxury, and Greek modes.",
-    status: "Planned",
+    status: "Ready",
+    href: "/dashboard/rewrite-studio",
   },
   {
     title: "SEO Optimizer",
     description:
       "Score titles and descriptions, find missing keywords, and generate improved versions.",
-    status: "Planned",
+    status: "Ready",
+    href: "/dashboard/seo-optimizer",
   },
   {
     title: "Translation Studio",
     description:
       "Translate and localize e-commerce content for Greek, English, German, French, Italian, and Spanish.",
-    status: "Planned",
+    status: "Ready",
+    href: "/dashboard/translation-studio",
   },
   {
     title: "Prompt Templates",
     description:
       "Start from ready templates for accessories, beauty, fashion, fitness, and more.",
-    status: "Planned",
+    status: "Ready",
+    href: "/dashboard/prompt-templates",
   },
   {
     title: "Brand Voice",

@@ -1,5 +1,7 @@
 import { GoogleGenAI } from "@google/genai";
 
+import type { z } from "zod";
+
 import {
   productContentOutputSchema,
   type ProductContentInput,
@@ -8,7 +10,7 @@ import {
 
 export const GEMINI_PRODUCT_CONTENT_MODEL = "gemini-3.5-flash";
 
-type BrandVoiceContext = {
+export type BrandVoiceContext = {
   language?: string;
   tone?: string;
   style?: string;
@@ -34,13 +36,15 @@ export function hasGeminiApiKey() {
   return Boolean(process.env.GEMINI_API_KEY);
 }
 
-export async function generateProductContentWithGemini({
-  input,
-  brandVoice,
+export async function generateJsonWithGemini<TSchema extends z.ZodType>({
+  prompt,
+  responseSchema,
+  zodSchema,
 }: {
-  input: ProductContentInput;
-  brandVoice: BrandVoiceContext;
-}): Promise<ProductContentOutput> {
+  prompt: string;
+  responseSchema: Record<string, unknown>;
+  zodSchema: TSchema;
+}): Promise<z.infer<TSchema>> {
   const client = getGeminiClient();
 
   if (!client) {
@@ -49,11 +53,33 @@ export async function generateProductContentWithGemini({
 
   const response = await client.models.generateContent({
     model: GEMINI_PRODUCT_CONTENT_MODEL,
-    contents: buildProductContentPrompt(input, brandVoice),
+    contents: prompt,
     config: {
       temperature: 0.7,
       responseMimeType: "application/json",
-      responseSchema: {
+      responseSchema,
+    },
+  });
+  const text = response.text;
+
+  if (!text) {
+    throw new Error("Gemini returned an empty response.");
+  }
+
+  return zodSchema.parse(JSON.parse(text));
+}
+
+export async function generateProductContentWithGemini({
+  input,
+  brandVoice,
+}: {
+  input: ProductContentInput;
+  brandVoice: BrandVoiceContext;
+}): Promise<ProductContentOutput> {
+  return generateJsonWithGemini({
+    prompt: buildProductContentPrompt(input, brandVoice),
+    zodSchema: productContentOutputSchema,
+    responseSchema: {
         type: "object",
         additionalProperties: false,
         required: [
@@ -88,17 +114,8 @@ export async function generateProductContentWithGemini({
           imageAltText: { type: "string" },
           wooCommerceHtml: { type: "string" },
         },
-      },
     },
   });
-
-  const text = response.text;
-
-  if (!text) {
-    throw new Error("Gemini returned an empty response.");
-  }
-
-  return productContentOutputSchema.parse(JSON.parse(text));
 }
 
 function buildProductContentPrompt(

@@ -19,6 +19,9 @@ import {
 import { getHistoryGenerationDetail } from "@/features/history/queries";
 import { RegenerateButton } from "@/features/history/RegenerateButton";
 import { PRODUCT_CONTENT_TOOL_NAME } from "@/features/product-content-generator/generate";
+import { REWRITE_STUDIO_TOOL_NAME } from "@/features/rewrite-studio/generate";
+import { SEO_OPTIMIZER_TOOL_NAME } from "@/features/seo-optimizer/generate";
+import { TRANSLATION_STUDIO_TOOL_NAME } from "@/features/translation-studio/generate";
 
 export default async function HistoryDetailPage({
   params,
@@ -36,7 +39,12 @@ export default async function HistoryDetailPage({
     generation.input,
     `Generation ${generation.id.slice(0, 8)}`,
   );
-  const canRegenerate = generation.tool === PRODUCT_CONTENT_TOOL_NAME;
+  const canRegenerate = [
+    PRODUCT_CONTENT_TOOL_NAME,
+    REWRITE_STUDIO_TOOL_NAME,
+    SEO_OPTIMIZER_TOOL_NAME,
+    TRANSLATION_STUDIO_TOOL_NAME,
+  ].includes(generation.tool);
 
   return (
     <main className="flex flex-1 flex-col gap-6 p-4 md:p-6">

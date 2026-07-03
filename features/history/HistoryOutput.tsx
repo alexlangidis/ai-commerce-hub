@@ -14,6 +14,20 @@ const productOutputFields = [
   ["WooCommerce HTML", "wooCommerceHtml"],
 ] as const;
 
+const commonOutputFields = [
+  ...productOutputFields,
+  ["Rewritten description", "rewrittenDescription"],
+  ["Summary of changes", "summaryOfChanges"],
+  ["Before / after", "beforeAfterPreview"],
+  ["SEO score", "seoScore"],
+  ["Title suggestions", "titleSuggestions"],
+  ["Missing keywords", "missingKeywords"],
+  ["Improved version", "improvedVersion"],
+  ["Translated content", "translatedContent"],
+  ["Localization notes", "localizedNotes"],
+  ["SEO keywords", "seoKeywords"],
+] as const;
+
 export function HistoryOutput({
   output,
   compact = false,
@@ -21,7 +35,7 @@ export function HistoryOutput({
   output: JsonRecord;
   compact?: boolean;
 }) {
-  const fields = productOutputFields
+  const fields = commonOutputFields
     .map(([label, key]) => ({
       label,
       value: formatOutputValue(output[key]),
@@ -79,6 +93,22 @@ export function getGenerationTitle(input: JsonRecord, fallback: string) {
 
   if (typeof productName === "string") {
     return productName;
+  }
+
+  const title = input.title;
+  const targetKeyword = input.targetKeyword;
+  const mode = input.mode;
+
+  if (typeof title === "string") {
+    return title;
+  }
+
+  if (typeof targetKeyword === "string") {
+    return `SEO: ${targetKeyword}`;
+  }
+
+  if (typeof mode === "string") {
+    return mode;
   }
 
   return fallback;

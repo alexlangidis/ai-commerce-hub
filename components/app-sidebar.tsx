@@ -50,15 +50,15 @@ const navItems = [
       },
       {
         title: "Rewrite Studio",
-        url: "/dashboard",
+        url: "/dashboard/rewrite-studio",
       },
       {
         title: "SEO Optimizer",
-        url: "/dashboard",
+        url: "/dashboard/seo-optimizer",
       },
       {
         title: "Translation Studio",
-        url: "/dashboard",
+        url: "/dashboard/translation-studio",
       },
     ],
   },
@@ -69,7 +69,7 @@ const navItems = [
   },
   {
     title: "Prompt Templates",
-    url: "/dashboard",
+    url: "/dashboard/prompt-templates",
     icon: FileTextIcon,
   },
   {
@@ -82,12 +82,12 @@ const navItems = [
 const upcomingItems = [
   {
     title: "Languages",
-    url: "/dashboard",
+    url: "/dashboard/translation-studio",
     icon: LanguagesIcon,
   },
   {
     title: "WooCommerce HTML",
-    url: "/dashboard",
+    url: "/dashboard/product-generator",
     icon: WandSparklesIcon,
   },
 ];
