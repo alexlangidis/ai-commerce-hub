@@ -1,46 +1,75 @@
-import { AppPanel } from "@/components/app/app-panel";
 import { PageHeader } from "@/components/app/page-header";
 import { PageShell } from "@/components/app/page-shell";
-import { Badge } from "@/components/ui/badge";
+import { CreatePromptTemplateForm } from "@/features/prompt-templates/CreatePromptTemplateForm";
+import { PromptTemplateCard } from "@/features/prompt-templates/PromptTemplateCard";
+import {
+  getUserPromptTemplates,
+  toPromptTemplateCard,
+} from "@/features/prompt-templates/queries";
 import { promptTemplates } from "@/features/prompt-templates/templates";
+import { getWorkspaceOptionLists } from "@/features/workspace-options/actions";
 
-export default function PromptTemplatesPage() {
+export default async function PromptTemplatesPage() {
+  const [userTemplates, optionLists] = await Promise.all([
+    getUserPromptTemplates(),
+    getWorkspaceOptionLists(),
+  ]);
+  const customTemplates = userTemplates.map(toPromptTemplateCard);
+  const builtInTemplates = promptTemplates.map((template) => ({
+    ...template,
+    isCustom: false,
+  }));
+
   return (
     <PageShell>
       <PageHeader
         eyebrow="Prompt Templates"
         title="Start product prompts from proven ecommerce templates."
-        description="These templates define the fields each product type usually needs. Wire them into Product Generator next."
+        description="Use built-in templates or create your own field sets for the product types you sell most."
       />
 
-      <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-        {promptTemplates.map((template) => (
-          <AppPanel key={template.slug} className="transition-transform hover:-translate-y-0.5">
-            <div className="flex h-full flex-col gap-4 p-5">
-              <div className="flex flex-col gap-2">
-                <Badge variant="outline" className="w-fit">
-                  {template.category}
-                </Badge>
-                <h3 className="text-base font-semibold">{template.name}</h3>
-                <p className="text-sm leading-6 text-muted-foreground">
-                  {template.description}
-                </p>
-              </div>
-              <div className="mt-auto flex flex-col gap-2">
-                <p className="text-sm font-medium">Fields</p>
-                <ul className="flex flex-col gap-2 text-sm text-muted-foreground">
-                  {template.fields.map((field) => (
-                    <li key={field} className="flex items-center gap-2">
-                      <span className="size-1.5 rounded-full bg-primary" />
-                      <span>{field}</span>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            </div>
-          </AppPanel>
-        ))}
+      <CreatePromptTemplateForm categories={optionLists.categories} />
+
+      {customTemplates.length ? (
+        <section className="flex flex-col gap-4">
+          <SectionHeading
+            title="Your templates"
+            description="Custom templates saved to your workspace."
+          />
+          <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+            {customTemplates.map((template) => (
+              <PromptTemplateCard key={template.id} template={template} />
+            ))}
+          </div>
+        </section>
+      ) : null}
+
+      <section className="flex flex-col gap-4">
+        <SectionHeading
+          title="Built-in templates"
+          description="Ready-made field sets for common ecommerce categories."
+        />
+        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+          {builtInTemplates.map((template) => (
+            <PromptTemplateCard key={template.slug} template={template} />
+          ))}
+        </div>
       </section>
     </PageShell>
+  );
+}
+
+function SectionHeading({
+  title,
+  description,
+}: {
+  title: string;
+  description: string;
+}) {
+  return (
+    <div className="flex flex-col gap-1">
+      <h2 className="text-sm font-semibold tracking-tight">{title}</h2>
+      <p className="text-sm text-muted-foreground">{description}</p>
+    </div>
   );
 }

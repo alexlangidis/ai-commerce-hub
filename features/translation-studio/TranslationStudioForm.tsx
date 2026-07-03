@@ -2,11 +2,18 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { LanguagesIcon } from "lucide-react";
-import { Controller, useForm, type Control } from "react-hook-form";
+import { Controller, useForm } from "react-hook-form";
 import { toast } from "sonner";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import {
+  CustomOptionsProvider,
+  CustomOptionsToggle,
+} from "@/components/app/custom-options-context";
+import { FormFieldGrid } from "@/components/app/form-field";
+import { OptionSelectField } from "@/components/app/option-select-field";
+import { SimpleSelectField } from "@/components/app/simple-select-field";
 import {
   Card,
   CardContent,
@@ -14,20 +21,10 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import {
-  Select,
-  SelectContent,
-  SelectGroup,
-  SelectItem,
-  SelectLabel,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { createTranslationGeneration } from "@/features/translation-studio/actions";
 import {
   defaultTranslationStudioInput,
-  translationLanguageOptions,
   translationModeOptions,
   translationStudioInputSchema,
   type TranslationStudioInput,
@@ -35,10 +32,15 @@ import {
 } from "@/features/translation-studio/schema";
 import { PreviewBlock } from "@/features/shared/PreviewBlock";
 import { useToolPreview } from "@/lib/stores/generation-preview-store";
+import type { WorkspaceOptionLists } from "@/lib/workspace-options";
 
-type SelectName = "sourceLanguage" | "targetLanguage" | "mode";
-
-export function TranslationStudioForm() {
+export function TranslationStudioForm({
+  defaultValues = defaultTranslationStudioInput,
+  languages,
+}: {
+  defaultValues?: TranslationStudioInput;
+  languages: WorkspaceOptionLists["languages"];
+}) {
   const { output, generationId, savePreview } =
     useToolPreview<TranslationStudioOutput>("translation-studio");
   const {
@@ -48,7 +50,7 @@ export function TranslationStudioForm() {
     formState: { errors, isSubmitting },
   } = useForm<TranslationStudioInput>({
     resolver: zodResolver(translationStudioInputSchema),
-    defaultValues: defaultTranslationStudioInput,
+    defaultValues,
   });
 
   async function onSubmit(values: TranslationStudioInput) {
@@ -62,39 +64,68 @@ export function TranslationStudioForm() {
   }
 
   return (
-    <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_420px]">
-      <Card className="app-panel ring-0">
-        <CardHeader>
-          <CardTitle>Translation input</CardTitle>
-          <CardDescription>
-            Translate, localize, or adapt content for SEO in another language.
-          </CardDescription>
-        </CardHeader>
+    <CustomOptionsProvider>
+      <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_420px]">
+        <Card className="app-panel ring-0">
+          <CardHeader>
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+              <div className="min-w-0">
+                <CardTitle>Translation input</CardTitle>
+                <CardDescription>
+                  Translate, localize, or adapt content for SEO in another language.
+                </CardDescription>
+              </div>
+              <CustomOptionsToggle />
+            </div>
+          </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-5">
-            <div className="grid gap-4 md:grid-cols-3">
-              <SelectField
+            <FormFieldGrid>
+              <Controller
                 control={control}
                 name="sourceLanguage"
-                label="From"
-                options={translationLanguageOptions}
-                error={errors.sourceLanguage?.message}
+                render={({ field }) => (
+                  <OptionSelectField
+                    id="sourceLanguage"
+                    label="From"
+                    optionKey="languages"
+                    options={languages}
+                    value={field.value}
+                    onValueChange={field.onChange}
+                    error={errors.sourceLanguage?.message}
+                  />
+                )}
               />
-              <SelectField
+              <Controller
                 control={control}
                 name="targetLanguage"
-                label="To"
-                options={translationLanguageOptions}
-                error={errors.targetLanguage?.message}
+                render={({ field }) => (
+                  <OptionSelectField
+                    id="targetLanguage"
+                    label="To"
+                    optionKey="languages"
+                    options={languages}
+                    value={field.value}
+                    onValueChange={field.onChange}
+                    error={errors.targetLanguage?.message}
+                  />
+                )}
               />
-              <SelectField
+              <Controller
                 control={control}
                 name="mode"
-                label="Mode"
-                options={translationModeOptions}
-                error={errors.mode?.message}
+                render={({ field }) => (
+                  <SimpleSelectField
+                    id="mode"
+                    label="Mode"
+                    options={translationModeOptions}
+                    value={field.value}
+                    onValueChange={field.onChange}
+                    error={errors.mode?.message}
+                  />
+                )}
               />
-            </div>
+            </FormFieldGrid>
 
             <div className="flex flex-col gap-2">
               <label className="text-sm font-medium" htmlFor="sourceContent">
@@ -128,57 +159,8 @@ export function TranslationStudioForm() {
       </Card>
 
       <TranslationPreview output={output} generationId={generationId} />
-    </div>
-  );
-}
-
-function SelectField({
-  control,
-  name,
-  label,
-  options,
-  error,
-}: {
-  control: Control<TranslationStudioInput>;
-  name: SelectName;
-  label: string;
-  options: readonly string[];
-  error?: string;
-}) {
-  const items = options.map((option) => ({ label: option, value: option }));
-
-  return (
-    <div className="flex flex-col gap-2">
-      <label className="text-sm font-medium" htmlFor={name}>
-        {label}
-      </label>
-      <Controller
-        control={control}
-        name={name}
-        render={({ field }) => (
-          <Select
-            items={items}
-            value={field.value}
-            onValueChange={(value) => field.onChange(value ?? "")}
-          >
-            <SelectTrigger id={name} aria-invalid={Boolean(error)} className="w-full">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectGroup>
-                <SelectLabel>{label}</SelectLabel>
-                {items.map((item) => (
-                  <SelectItem key={item.value} value={item.value}>
-                    {item.label}
-                  </SelectItem>
-                ))}
-              </SelectGroup>
-            </SelectContent>
-          </Select>
-        )}
-      />
-      {error ? <p className="text-sm text-destructive">{error}</p> : null}
-    </div>
+      </div>
+    </CustomOptionsProvider>
   );
 }
 

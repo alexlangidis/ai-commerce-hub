@@ -1,7 +1,11 @@
 import { InfoPanel } from "@/components/app/info-panel";
 import { PageHeader } from "@/components/app/page-header";
 import { PageShell } from "@/components/app/page-shell";
+import { getBrandVoice } from "@/features/brand-voice/actions";
 import { ProductContentGeneratorForm } from "@/features/product-content-generator/ProductContentGeneratorForm";
+import { getWorkspaceOptionLists } from "@/features/workspace-options/actions";
+import { getProductContentFormDefaults } from "@/lib/brand-voice-tool-defaults";
+import { ensureSelectedOption } from "@/lib/workspace-options";
 
 const outputs = [
   "SEO title",
@@ -12,7 +16,13 @@ const outputs = [
   "WooCommerce HTML",
 ];
 
-export default function ProductGeneratorPage() {
+export default async function ProductGeneratorPage() {
+  const [brandVoice, optionLists] = await Promise.all([
+    getBrandVoice(),
+    getWorkspaceOptionLists(),
+  ]);
+  const defaultValues = getProductContentFormDefaults(brandVoice);
+
   return (
     <PageShell>
       <section className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_300px]">
@@ -38,7 +48,20 @@ export default function ProductGeneratorPage() {
         </InfoPanel>
       </section>
 
-      <ProductContentGeneratorForm />
+      <ProductContentGeneratorForm
+        defaultValues={defaultValues}
+        optionLists={{
+          languages: ensureSelectedOption(
+            optionLists.languages,
+            defaultValues.targetLanguage,
+          ),
+          categories: ensureSelectedOption(
+            optionLists.categories,
+            defaultValues.category,
+          ),
+          tones: ensureSelectedOption(optionLists.tones, defaultValues.tone),
+        }}
+      />
     </PageShell>
   );
 }

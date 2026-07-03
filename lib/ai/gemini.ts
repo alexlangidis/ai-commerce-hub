@@ -11,12 +11,20 @@ import {
 export const GEMINI_TEXT_MODEL = "gemini-3.1-flash-lite";
 
 export type BrandVoiceContext = {
-  language?: string;
-  tone?: string;
   style?: string;
   avoid?: string;
   preferredCta?: string;
 };
+
+export function formatBrandRulesForPrompt(brandVoice: BrandVoiceContext) {
+  return {
+    style: brandVoice.style ?? "Clear, helpful, not exaggerated",
+    avoid:
+      brandVoice.avoid ??
+      "Fake claims, unsupported claims, excessive emojis, exaggeration",
+    preferredCta: brandVoice.preferredCta ?? "Contact us for more information.",
+  };
+}
 
 let geminiClient: GoogleGenAI | null = null;
 
@@ -131,17 +139,13 @@ function buildProductContentPrompt(
     JSON.stringify(input, null, 2),
     "",
     "Brand voice rules:",
+    JSON.stringify(formatBrandRulesForPrompt(brandVoice), null, 2),
+    "",
+    "Request language and tone:",
     JSON.stringify(
       {
-        language: brandVoice.language ?? input.targetLanguage,
-        tone: brandVoice.tone ?? input.tone,
-        style: brandVoice.style ?? "Clear, helpful, not exaggerated",
-        avoid:
-          brandVoice.avoid ??
-          "Fake claims, unsupported claims, excessive emojis, exaggeration",
-        preferredCta:
-          brandVoice.preferredCta ??
-          "Contact us for more information.",
+        language: input.targetLanguage,
+        tone: input.tone,
       },
       null,
       2,

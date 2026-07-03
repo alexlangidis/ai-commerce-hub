@@ -1,13 +1,8 @@
 import { z } from "zod";
 
-export const translationLanguageOptions = [
-  "Greek",
-  "English",
-  "German",
-  "French",
-  "Italian",
-  "Spanish",
-] as const;
+import { languageOptions } from "@/lib/languages";
+
+export const translationLanguageOptions = languageOptions;
 
 export const translationModeOptions = [
   "Direct translation",

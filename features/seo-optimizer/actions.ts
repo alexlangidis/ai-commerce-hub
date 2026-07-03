@@ -13,6 +13,7 @@ import {
   type SeoOptimizerInput,
 } from "@/features/seo-optimizer/schema";
 import { db } from "@/lib/db";
+import { getBrandRulesForGeneration } from "@/lib/brand-voice-tool-defaults";
 import { requireSession } from "@/lib/session";
 
 export async function createSeoOptimization(input: SeoOptimizerInput) {
@@ -23,13 +24,7 @@ export async function createSeoOptimization(input: SeoOptimizerInput) {
   });
   const { model, output } = await generateSeoOptimizerOutput({
     input: values,
-    brandVoice: {
-      language: brandProfile?.language,
-      tone: brandProfile?.tone,
-      style: brandProfile?.style,
-      preferredCta: brandProfile?.preferredCta,
-      avoid: brandProfile?.avoid,
-    },
+    brandVoice: getBrandRulesForGeneration(brandProfile),
   });
 
   const [generation] = await db

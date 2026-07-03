@@ -1,5 +1,6 @@
 import {
   GEMINI_TEXT_MODEL,
+  formatBrandRulesForPrompt,
   generateJsonWithGemini,
   hasGeminiApiKey,
   type BrandVoiceContext,
@@ -70,8 +71,8 @@ function buildRewritePrompt(
     "Rewrite input:",
     JSON.stringify(input, null, 2),
     "",
-    "Brand voice:",
-    JSON.stringify(brandVoice, null, 2),
+    "Brand voice rules:",
+    JSON.stringify(formatBrandRulesForPrompt(brandVoice), null, 2),
     "",
     "Rules:",
     "- Keep factual meaning accurate.",

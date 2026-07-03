@@ -1,46 +1,42 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
+import { MegaphoneIcon, ShieldAlertIcon, SparklesIcon, TypeIcon } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { Controller, useForm, useWatch, type Control } from "react-hook-form";
+import { type ComponentType, type ReactNode } from "react";
+import { Controller, useForm, useWatch } from "react-hook-form";
 import { toast } from "sonner";
 
+import { AppPanel } from "@/components/app/app-panel";
+import {
+  CustomOptionsProvider,
+  CustomOptionsToggle,
+} from "@/components/app/custom-options-context";
+import { OptionSelectField } from "@/components/app/option-select-field";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import {
-  Select,
-  SelectContent,
-  SelectGroup,
-  SelectItem,
-  SelectLabel,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { Separator } from "@/components/ui/separator";
 import { saveBrandVoice } from "@/features/brand-voice/actions";
 import {
-  avoidOptions,
   brandVoiceSchema,
   defaultBrandVoiceValues,
-  languageOptions,
-  preferredCtaOptions,
-  styleOptions,
-  toneOptions,
   type BrandVoiceValues,
 } from "@/features/brand-voice/schema";
+import type { WorkspaceOptionLists } from "@/lib/workspace-options";
+import { cn } from "@/lib/utils";
 
 type BrandVoiceFormProps = {
   initialValues?: BrandVoiceValues;
+  optionLists: Pick<
+    WorkspaceOptionLists,
+    "languages" | "tones" | "styles" | "avoids" | "ctas"
+  >;
 };
 
-type SelectFieldName = "language" | "tone" | "style" | "avoid" | "preferredCta";
-
-export function BrandVoiceForm({ initialValues }: BrandVoiceFormProps) {
+export function BrandVoiceForm({
+  initialValues,
+  optionLists,
+}: BrandVoiceFormProps) {
   const router = useRouter();
   const {
     control,
@@ -63,162 +59,190 @@ export function BrandVoiceForm({ initialValues }: BrandVoiceFormProps) {
   }
 
   return (
-    <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_360px]">
-      <Card className="app-panel ring-0">
-        <CardHeader>
-          <CardTitle>Brand rules</CardTitle>
-          <CardDescription>
-            Choose presets first. Adjust the detail fields only when the brand
-            needs something more specific.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-5">
-            <div className="grid gap-4 md:grid-cols-2">
-              <SelectField
+    <CustomOptionsProvider>
+      <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_300px] xl:items-start">
+        <AppPanel className="overflow-visible">
+          <div className="border-b border-border/60 px-5 py-4 sm:px-6">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+              <div className="min-w-0">
+                <h2 className="text-base font-semibold">Brand rules</h2>
+                <p className="mt-1 text-sm text-muted-foreground">
+                  Pick presets or add your own. Custom options sync across all tools.
+                </p>
+              </div>
+              <CustomOptionsToggle />
+            </div>
+          </div>
+
+        <form onSubmit={handleSubmit(onSubmit)} className="px-5 py-5 sm:px-6">
+          <div className="flex flex-col gap-6">
+            <BrandRuleSection
+              title="Voice & language"
+              icon={SparklesIcon}
+            >
+              <Controller
                 control={control}
                 name="language"
-                label="Default language"
-                description="The language AI outputs should prefer."
-                options={languageOptions}
-                error={errors.language?.message}
+                render={({ field }) => (
+                  <OptionSelectField
+                    id="language"
+                    label="Default language"
+                    optionKey="languages"
+                    options={optionLists.languages}
+                    value={field.value}
+                    onValueChange={field.onChange}
+                    error={errors.language?.message}
+                  />
+                )}
               />
-              <SelectField
+              <Controller
                 control={control}
                 name="tone"
-                label="Tone"
-                description="How the copy should sound."
-                options={toneOptions}
-                error={errors.tone?.message}
+                render={({ field }) => (
+                  <OptionSelectField
+                    id="tone"
+                    label="Tone"
+                    optionKey="tones"
+                    options={optionLists.tones}
+                    value={field.value}
+                    onValueChange={field.onChange}
+                    error={errors.tone?.message}
+                  />
+                )}
               />
-            </div>
+            </BrandRuleSection>
 
-            <SelectField
-              control={control}
-              name="style"
-              label="Writing style"
-              description="Pick the closest style for product descriptions and rewrites."
-              options={styleOptions}
-              error={errors.style?.message}
-            />
+            <Separator />
 
-            <SelectField
-              control={control}
-              name="avoid"
-              label="Avoid"
-              description="The main things AI should not include."
-              options={avoidOptions}
-              error={errors.avoid?.message}
-            />
+            <BrandRuleSection title="Writing style" icon={TypeIcon}>
+              <Controller
+                control={control}
+                name="style"
+                render={({ field }) => (
+                  <OptionSelectField
+                    id="style"
+                    label="Style"
+                    optionKey="styles"
+                    options={optionLists.styles}
+                    value={field.value}
+                    onValueChange={field.onChange}
+                    error={errors.style?.message}
+                    addPlaceholder="Custom style"
+                  />
+                )}
+              />
+            </BrandRuleSection>
 
-            <SelectField
-              control={control}
-              name="preferredCta"
-              label="Preferred CTA"
-              description="Reusable call-to-action for generated product copy."
-              options={preferredCtaOptions}
-              error={errors.preferredCta?.message}
-            />
+            <Separator />
 
-            <div className="flex flex-col gap-3 border-t pt-5 sm:flex-row sm:items-center sm:justify-between">
-              <p className="text-sm text-muted-foreground">
-                These settings will be reused by Product Generator, Rewrite,
-                SEO, and Translation tools.
-              </p>
-              <Button type="submit" disabled={isSubmitting}>
-                {isSubmitting ? "Saving..." : "Save brand voice"}
-              </Button>
-            </div>
-          </form>
-        </CardContent>
-      </Card>
+            <BrandRuleSection title="Constraints" icon={ShieldAlertIcon}>
+              <Controller
+                control={control}
+                name="avoid"
+                render={({ field }) => (
+                  <OptionSelectField
+                    id="avoid"
+                    label="Avoid"
+                    optionKey="avoids"
+                    options={optionLists.avoids}
+                    value={field.value}
+                    onValueChange={field.onChange}
+                    error={errors.avoid?.message}
+                    addPlaceholder="Custom rule"
+                  />
+                )}
+              />
+            </BrandRuleSection>
 
-      <Card className="app-panel ring-0 h-fit lg:sticky lg:top-24">
-        <CardHeader>
-          <CardTitle>AI output preview</CardTitle>
-          <CardDescription>
-            This is the instruction profile future AI tools will follow.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <dl className="flex flex-col gap-4 text-sm">
-            <PreviewRow label="Language" value={previewValues.language} />
-            <PreviewRow label="Tone" value={previewValues.tone} />
-            <PreviewRow label="Style" value={previewValues.style} />
-            <PreviewRow label="Avoid" value={previewValues.avoid} />
-            <PreviewRow label="CTA" value={previewValues.preferredCta} />
-          </dl>
-        </CardContent>
-      </Card>
+            <Separator />
+
+            <BrandRuleSection title="Call to action" icon={MegaphoneIcon}>
+              <Controller
+                control={control}
+                name="preferredCta"
+                render={({ field }) => (
+                  <OptionSelectField
+                    id="preferredCta"
+                    label="Preferred CTA"
+                    optionKey="ctas"
+                    options={optionLists.ctas}
+                    value={field.value}
+                    onValueChange={field.onChange}
+                    error={errors.preferredCta?.message}
+                    addPlaceholder="Custom CTA"
+                  />
+                )}
+              />
+            </BrandRuleSection>
+          </div>
+
+          <div className="mt-6 flex flex-col gap-3 border-t border-border/60 pt-5 sm:flex-row sm:items-center sm:justify-between">
+            <p className="text-sm text-muted-foreground">
+              Applies to Product Generator, Rewrite, SEO, and Translation.
+            </p>
+            <Button type="submit" disabled={isSubmitting} className="w-full sm:w-auto">
+              {isSubmitting ? "Saving..." : "Save brand voice"}
+            </Button>
+          </div>
+        </form>
+      </AppPanel>
+
+      <AppPanel className="h-fit xl:sticky xl:top-24">
+        <div className="flex items-center justify-between gap-3 border-b border-border/60 px-5 py-4 sm:px-6">
+          <div>
+            <h2 className="text-base font-semibold">Live preview</h2>
+            <p className="mt-0.5 text-sm text-muted-foreground">
+              AI instruction profile
+            </p>
+          </div>
+          <Badge variant="secondary" className="bg-primary/10 text-primary">
+            Active
+          </Badge>
+        </div>
+        <dl className="flex flex-col gap-2.5 p-5 sm:p-6">
+          <PreviewRow label="Language" value={previewValues.language} />
+          <PreviewRow label="Tone" value={previewValues.tone} />
+          <PreviewRow label="Style" value={previewValues.style} />
+          <PreviewRow label="Avoid" value={previewValues.avoid} />
+          <PreviewRow label="CTA" value={previewValues.preferredCta} />
+        </dl>
+      </AppPanel>
     </div>
+    </CustomOptionsProvider>
   );
 }
 
-function SelectField({
-  control,
-  name,
-  label,
-  description,
-  options,
-  error,
+function BrandRuleSection({
+  title,
+  icon: Icon,
+  children,
 }: {
-  control: Control<BrandVoiceValues>;
-  name: SelectFieldName;
-  label: string;
-  description: string;
-  options: readonly string[];
-  error?: string;
+  title: string;
+  icon: ComponentType<{ className?: string }>;
+  children: ReactNode;
 }) {
-  const items = options.map((option) => ({
-    label: option,
-    value: option,
-  }));
-
   return (
-    <div className="flex flex-col gap-2">
-      <div className="flex flex-col gap-1">
-        <label className="text-sm font-medium" htmlFor={name}>
-          {label}
-        </label>
-        <p className="text-sm text-muted-foreground">{description}</p>
+    <section className="flex flex-col gap-4">
+      <div className="flex items-center gap-2">
+        <div className="flex size-7 shrink-0 items-center justify-center rounded-md bg-primary/10 text-primary">
+          <Icon className="size-3.5" />
+        </div>
+        <h3 className="text-sm font-semibold">{title}</h3>
       </div>
-      <Controller
-        control={control}
-        name={name}
-        render={({ field }) => (
-          <Select
-            items={items}
-            value={field.value}
-            onValueChange={(value) => field.onChange(value ?? "")}
-          >
-            <SelectTrigger id={name} aria-invalid={Boolean(error)} className="w-full">
-              <SelectValue placeholder={`Select ${label.toLowerCase()}`} />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectGroup>
-                <SelectLabel>{label}</SelectLabel>
-                {items.map((item) => (
-                  <SelectItem key={item.value} value={item.value}>
-                    {item.label}
-                  </SelectItem>
-                ))}
-              </SelectGroup>
-            </SelectContent>
-          </Select>
-        )}
-      />
-      {error ? <p className="text-sm text-destructive">{error}</p> : null}
-    </div>
+      <div className="flex flex-col gap-5">{children}</div>
+    </section>
   );
 }
 
 function PreviewRow({ label, value }: { label: string; value?: string }) {
   return (
-    <div className="flex flex-col gap-1 rounded-lg bg-muted p-3">
-      <dt className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+    <div className="rounded-lg bg-muted/40 px-3 py-2.5">
+      <dt className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
         {label}
       </dt>
-      <dd className="leading-6">{value || "Not set"}</dd>
+      <dd className={cn("mt-1 text-sm leading-5", !value && "text-muted-foreground")}>
+        {value || "Not set"}
+      </dd>
     </div>
   );
 }

@@ -2,6 +2,7 @@ import {
   GEMINI_TEXT_MODEL,
   generateProductContentWithGemini,
   hasGeminiApiKey,
+  type BrandVoiceContext,
 } from "@/lib/ai/gemini";
 import {
   type ProductContentInput,
@@ -10,14 +11,6 @@ import {
 
 export const PRODUCT_CONTENT_TOOL_NAME = "product-content-generator";
 export const PRODUCT_CONTENT_PREVIEW_MODEL = "deterministic-preview-v1";
-
-type BrandVoiceContext = {
-  language?: string;
-  tone?: string;
-  style?: string;
-  preferredCta?: string;
-  avoid?: string;
-};
 
 export async function generateProductContentOutput({
   input,

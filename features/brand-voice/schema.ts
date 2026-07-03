@@ -1,13 +1,8 @@
 import { z } from "zod";
 
-export const languageOptions = [
-  "Greek",
-  "English",
-  "German",
-  "French",
-  "Italian",
-  "Spanish",
-] as const;
+import { languageOptions } from "@/lib/languages";
+
+export { languageOptions };
 
 export const toneOptions = [
   "Professional",

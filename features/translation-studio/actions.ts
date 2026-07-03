@@ -13,6 +13,7 @@ import {
   type TranslationStudioInput,
 } from "@/features/translation-studio/schema";
 import { db } from "@/lib/db";
+import { getBrandRulesForGeneration } from "@/lib/brand-voice-tool-defaults";
 import { requireSession } from "@/lib/session";
 
 export async function createTranslationGeneration(input: TranslationStudioInput) {
@@ -23,13 +24,7 @@ export async function createTranslationGeneration(input: TranslationStudioInput)
   });
   const { model, output } = await generateTranslationStudioOutput({
     input: values,
-    brandVoice: {
-      language: brandProfile?.language,
-      tone: brandProfile?.tone,
-      style: brandProfile?.style,
-      preferredCta: brandProfile?.preferredCta,
-      avoid: brandProfile?.avoid,
-    },
+    brandVoice: getBrandRulesForGeneration(brandProfile),
   });
 
   const [generation] = await db

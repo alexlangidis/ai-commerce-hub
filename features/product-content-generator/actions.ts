@@ -14,6 +14,7 @@ import {
   PRODUCT_CONTENT_TOOL_NAME,
 } from "@/features/product-content-generator/generate";
 import { db } from "@/lib/db";
+import { getBrandRulesForGeneration } from "@/lib/brand-voice-tool-defaults";
 import { requireSession } from "@/lib/session";
 
 export async function createProductContent(
@@ -24,13 +25,7 @@ export async function createProductContent(
   const brandProfile = await db.query.brandProfiles.findFirst({
     where: eq(brandProfiles.userId, session.user.id),
   });
-  const brandVoice = {
-    language: brandProfile?.language,
-    tone: brandProfile?.tone,
-    style: brandProfile?.style,
-    preferredCta: brandProfile?.preferredCta,
-    avoid: brandProfile?.avoid,
-  };
+  const brandVoice = getBrandRulesForGeneration(brandProfile);
   const { model, output } = await generateProductContentOutput({
     input: values,
     brandVoice,

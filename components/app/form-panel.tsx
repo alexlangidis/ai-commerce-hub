@@ -6,12 +6,14 @@ import { cn } from "@/lib/utils";
 export function ToolFormPanel({
   title,
   description,
+  headerAction,
   children,
   footer,
   className,
 }: {
   title: string;
   description?: string;
+  headerAction?: ReactNode;
   children: ReactNode;
   footer?: ReactNode;
   className?: string;
@@ -19,12 +21,17 @@ export function ToolFormPanel({
   return (
     <AppPanel className={cn("overflow-visible", className)}>
       <div className="border-b border-border/60 px-6 py-5">
-        <h2 className="text-base font-semibold">{title}</h2>
-        {description ? (
-          <p className="mt-1 text-sm leading-6 text-muted-foreground">
-            {description}
-          </p>
-        ) : null}
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+          <div className="min-w-0">
+            <h2 className="text-base font-semibold">{title}</h2>
+            {description ? (
+              <p className="mt-1 text-sm leading-6 text-muted-foreground">
+                {description}
+              </p>
+            ) : null}
+          </div>
+          {headerAction ? <div className="shrink-0">{headerAction}</div> : null}
+        </div>
       </div>
       <div className="px-6 py-5">{children}</div>
       {footer ? <div className="tool-form-footer">{footer}</div> : null}

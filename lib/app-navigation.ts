@@ -141,7 +141,7 @@ export const workspaceModules = [
   {
     title: "Translation Studio",
     description:
-      "Translate and localize content for Greek, English, German, French, Italian, and Spanish.",
+      "Translate and localize content for Greek, English, German, French, Italian, Spanish, and Polish.",
     href: "/dashboard/translation-studio",
     icon: LanguagesIcon,
     accent: "from-chart-2/20 to-accent/30",

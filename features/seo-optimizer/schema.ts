@@ -1,13 +1,8 @@
 import { z } from "zod";
 
-export const seoLanguageOptions = [
-  "Greek",
-  "English",
-  "German",
-  "French",
-  "Italian",
-  "Spanish",
-] as const;
+import { languageOptions } from "@/lib/languages";
+
+export const seoLanguageOptions = languageOptions;
 
 export const seoOptimizerInputSchema = z.object({
   title: z.string().trim().min(3, "Title is required."),

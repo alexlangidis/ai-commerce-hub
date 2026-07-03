@@ -2,11 +2,19 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { SearchCheckIcon } from "lucide-react";
-import { Controller, useForm, type Control, type UseFormRegisterReturn } from "react-hook-form";
+import { Controller, useForm } from "react-hook-form";
 import { toast } from "sonner";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import {
+  CustomOptionsProvider,
+  CustomOptionsToggle,
+} from "@/components/app/custom-options-context";
+import { formFieldSplitGridClassName } from "@/components/app/form-field";
+import { OptionSelectField } from "@/components/app/option-select-field";
+import { TextAreaField } from "@/components/app/text-area-field";
+import { TextInputField } from "@/components/app/text-input-field";
 import {
   Card,
   CardContent,
@@ -14,29 +22,25 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import {
-  Select,
-  SelectContent,
-  SelectGroup,
-  SelectItem,
-  SelectLabel,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { Textarea } from "@/components/ui/textarea";
 import { createSeoOptimization } from "@/features/seo-optimizer/actions";
 import {
   defaultSeoOptimizerInput,
-  seoLanguageOptions,
   seoOptimizerInputSchema,
   type SeoOptimizerInput,
   type SeoOptimizerOutput,
 } from "@/features/seo-optimizer/schema";
 import { PreviewBlock } from "@/features/shared/PreviewBlock";
 import { useToolPreview } from "@/lib/stores/generation-preview-store";
+import type { WorkspaceOptionLists } from "@/lib/workspace-options";
+import { cn } from "@/lib/utils";
 
-export function SeoOptimizerForm() {
+export function SeoOptimizerForm({
+  defaultValues = defaultSeoOptimizerInput,
+  languages,
+}: {
+  defaultValues?: SeoOptimizerInput;
+  languages: WorkspaceOptionLists["languages"];
+}) {
   const { output, generationId, savePreview } =
     useToolPreview<SeoOptimizerOutput>("seo-optimizer");
   const {
@@ -46,7 +50,7 @@ export function SeoOptimizerForm() {
     formState: { errors, isSubmitting },
   } = useForm<SeoOptimizerInput>({
     resolver: zodResolver(seoOptimizerInputSchema),
-    defaultValues: defaultSeoOptimizerInput,
+    defaultValues,
   });
 
   async function onSubmit(values: SeoOptimizerInput) {
@@ -60,51 +64,58 @@ export function SeoOptimizerForm() {
   }
 
   return (
-    <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_420px]">
-      <Card className="app-panel ring-0">
-        <CardHeader>
-          <CardTitle>SEO input</CardTitle>
-          <CardDescription>
-            Add a title, description, and target keyword.
-          </CardDescription>
-        </CardHeader>
+    <CustomOptionsProvider>
+      <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_420px]">
+        <Card className="app-panel ring-0">
+          <CardHeader>
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+              <div className="min-w-0">
+                <CardTitle>SEO input</CardTitle>
+                <CardDescription>
+                  Add a title, description, and target keyword.
+                </CardDescription>
+              </div>
+              <CustomOptionsToggle />
+            </div>
+          </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-5">
-            <div className="grid gap-4 md:grid-cols-[minmax(0,1fr)_220px]">
-              <InputField
+            <div className={cn(formFieldSplitGridClassName)}>
+              <TextInputField
                 label="Title"
                 placeholder="Wireless Fast Charger"
                 inputProps={register("title")}
                 error={errors.title?.message}
               />
-              <LanguageSelect
+              <Controller
                 control={control}
-                error={errors.targetLanguage?.message}
+                name="targetLanguage"
+                render={({ field }) => (
+                  <OptionSelectField
+                    id="targetLanguage"
+                    label="Language"
+                    optionKey="languages"
+                    options={languages}
+                    value={field.value}
+                    onValueChange={field.onChange}
+                    error={errors.targetLanguage?.message}
+                  />
+                )}
               />
             </div>
-            <InputField
+            <TextInputField
               label="Target keyword"
               placeholder="fast wireless charger"
               inputProps={register("targetKeyword")}
               error={errors.targetKeyword?.message}
             />
-            <div className="flex flex-col gap-2">
-              <label className="text-sm font-medium" htmlFor="description">
-                Description
-              </label>
-              <Textarea
-                id="description"
-                rows={8}
-                placeholder="Paste the current product description..."
-                aria-invalid={Boolean(errors.description)}
-                {...register("description")}
-              />
-              {errors.description?.message ? (
-                <p className="text-sm text-destructive">
-                  {errors.description.message}
-                </p>
-              ) : null}
-            </div>
+            <TextAreaField
+              label="Description"
+              placeholder="Paste the current product description..."
+              rows={8}
+              inputProps={register("description")}
+              error={errors.description?.message}
+            />
             <div className="flex flex-col gap-3 border-t pt-5 sm:flex-row sm:items-center sm:justify-between">
               <p className="text-sm text-muted-foreground">
                 Result includes score, suggestions, meta description, and an
@@ -120,85 +131,8 @@ export function SeoOptimizerForm() {
       </Card>
 
       <SeoPreview output={output} generationId={generationId} />
-    </div>
-  );
-}
-
-function InputField({
-  label,
-  placeholder,
-  inputProps,
-  error,
-}: {
-  label: string;
-  placeholder: string;
-  inputProps: UseFormRegisterReturn;
-  error?: string;
-}) {
-  return (
-    <div className="flex flex-col gap-2">
-      <label className="text-sm font-medium" htmlFor={inputProps.name}>
-        {label}
-      </label>
-      <Input
-        {...inputProps}
-        id={inputProps.name}
-        placeholder={placeholder}
-        aria-invalid={Boolean(error)}
-      />
-      {error ? <p className="text-sm text-destructive">{error}</p> : null}
-    </div>
-  );
-}
-
-function LanguageSelect({
-  control,
-  error,
-}: {
-  control: Control<SeoOptimizerInput>;
-  error?: string;
-}) {
-  const items = seoLanguageOptions.map((option) => ({
-    label: option,
-    value: option,
-  }));
-
-  return (
-    <div className="flex flex-col gap-2">
-      <label className="text-sm font-medium" htmlFor="targetLanguage">
-        Language
-      </label>
-      <Controller
-        control={control}
-        name="targetLanguage"
-        render={({ field }) => (
-          <Select
-            items={items}
-            value={field.value}
-            onValueChange={(value) => field.onChange(value ?? "")}
-          >
-            <SelectTrigger
-              id="targetLanguage"
-              aria-invalid={Boolean(error)}
-              className="w-full"
-            >
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectGroup>
-                <SelectLabel>Language</SelectLabel>
-                {items.map((item) => (
-                  <SelectItem key={item.value} value={item.value}>
-                    {item.label}
-                  </SelectItem>
-                ))}
-              </SelectGroup>
-            </SelectContent>
-          </Select>
-        )}
-      />
-      {error ? <p className="text-sm text-destructive">{error}</p> : null}
-    </div>
+      </div>
+    </CustomOptionsProvider>
   );
 }
 

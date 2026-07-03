@@ -67,22 +67,6 @@ export function HistoryOutput({
   );
 }
 
-export function formatOutputValue(value: unknown) {
-  if (typeof value === "string") {
-    return value;
-  }
-
-  if (Array.isArray(value)) {
-    return value.map((item) => String(item)).join("\n");
-  }
-
-  if (value && typeof value === "object") {
-    return JSON.stringify(value, null, 2);
-  }
-
-  return "";
-}
-
 export function getGenerationTitle(input: JsonRecord, fallback: string) {
   const productName = input.productName;
   const brand = input.brand;
@@ -112,4 +96,51 @@ export function getGenerationTitle(input: JsonRecord, fallback: string) {
   }
 
   return fallback;
+}
+
+export function formatOutputValue(value: unknown) {
+  if (typeof value === "string") {
+    return value;
+  }
+
+  if (Array.isArray(value)) {
+    return value.map((item) => String(item)).join("\n");
+  }
+
+  if (value && typeof value === "object") {
+    return JSON.stringify(value, null, 2);
+  }
+
+  return "";
+}
+
+const toolLabels: Record<string, string> = {
+  "product-content-generator": "Product Generator",
+  "rewrite-studio": "Rewrite Studio",
+  "seo-optimizer": "SEO Optimizer",
+  "translation-studio": "Translation Studio",
+};
+
+export function formatToolLabel(tool: string) {
+  return toolLabels[tool] ?? tool.replace(/-/g, " ");
+}
+
+export function getGenerationPreview(output: JsonRecord, maxLength = 140) {
+  for (const [, key] of commonOutputFields) {
+    const value = formatOutputValue(output[key]);
+
+    if (!value) {
+      continue;
+    }
+
+    const singleLine = value.replace(/\s+/g, " ").trim();
+
+    if (singleLine.length <= maxLength) {
+      return singleLine;
+    }
+
+    return `${singleLine.slice(0, maxLength).trimEnd()}…`;
+  }
+
+  return "";
 }

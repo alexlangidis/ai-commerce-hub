@@ -13,6 +13,7 @@ import {
   type RewriteStudioInput,
 } from "@/features/rewrite-studio/schema";
 import { db } from "@/lib/db";
+import { getBrandRulesForGeneration } from "@/lib/brand-voice-tool-defaults";
 import { requireSession } from "@/lib/session";
 
 export async function createRewriteGeneration(input: RewriteStudioInput) {
@@ -23,13 +24,7 @@ export async function createRewriteGeneration(input: RewriteStudioInput) {
   });
   const { model, output } = await generateRewriteStudioOutput({
     input: values,
-    brandVoice: {
-      language: brandProfile?.language,
-      tone: brandProfile?.tone,
-      style: brandProfile?.style,
-      preferredCta: brandProfile?.preferredCta,
-      avoid: brandProfile?.avoid,
-    },
+    brandVoice: getBrandRulesForGeneration(brandProfile),
   });
 
   const [generation] = await db

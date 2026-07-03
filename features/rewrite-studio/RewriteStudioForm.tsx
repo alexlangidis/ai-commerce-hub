@@ -2,11 +2,18 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { WandSparklesIcon } from "lucide-react";
-import { Controller, useForm, type Control } from "react-hook-form";
+import { Controller, useForm } from "react-hook-form";
 import { toast } from "sonner";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import {
+  CustomOptionsProvider,
+  CustomOptionsToggle,
+} from "@/components/app/custom-options-context";
+import { FormFieldGrid } from "@/components/app/form-field";
+import { OptionSelectField } from "@/components/app/option-select-field";
+import { SimpleSelectField } from "@/components/app/simple-select-field";
 import {
   Card,
   CardContent,
@@ -14,32 +21,26 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import {
-  Select,
-  SelectContent,
-  SelectGroup,
-  SelectItem,
-  SelectLabel,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { createRewriteGeneration } from "@/features/rewrite-studio/actions";
 import {
   defaultRewriteStudioInput,
-  rewriteLanguageOptions,
   rewriteModeOptions,
   rewriteStudioInputSchema,
-  rewriteToneOptions,
   type RewriteStudioInput,
   type RewriteStudioOutput,
 } from "@/features/rewrite-studio/schema";
 import { PreviewBlock } from "@/features/shared/PreviewBlock";
 import { useToolPreview } from "@/lib/stores/generation-preview-store";
+import type { WorkspaceOptionLists } from "@/lib/workspace-options";
 
-type SelectName = "mode" | "targetLanguage" | "tone";
-
-export function RewriteStudioForm() {
+export function RewriteStudioForm({
+  defaultValues = defaultRewriteStudioInput,
+  optionLists,
+}: {
+  defaultValues?: RewriteStudioInput;
+  optionLists: Pick<WorkspaceOptionLists, "languages" | "tones">;
+}) {
   const { output, generationId, savePreview } =
     useToolPreview<RewriteStudioOutput>("rewrite-studio");
   const {
@@ -49,7 +50,7 @@ export function RewriteStudioForm() {
     formState: { errors, isSubmitting },
   } = useForm<RewriteStudioInput>({
     resolver: zodResolver(rewriteStudioInputSchema),
-    defaultValues: defaultRewriteStudioInput,
+    defaultValues,
   });
 
   async function onSubmit(values: RewriteStudioInput) {
@@ -63,39 +64,68 @@ export function RewriteStudioForm() {
   }
 
   return (
-    <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_420px]">
-      <Card className="app-panel ring-0">
-        <CardHeader>
-          <CardTitle>Rewrite settings</CardTitle>
-          <CardDescription>
-            Paste existing product copy and choose how it should be improved.
-          </CardDescription>
-        </CardHeader>
+    <CustomOptionsProvider>
+      <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_420px]">
+        <Card className="app-panel ring-0">
+          <CardHeader>
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+              <div className="min-w-0">
+                <CardTitle>Rewrite settings</CardTitle>
+                <CardDescription>
+                  Paste existing product copy and choose how it should be improved.
+                </CardDescription>
+              </div>
+              <CustomOptionsToggle />
+            </div>
+          </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-5">
-            <div className="grid gap-4 md:grid-cols-3">
-              <SelectField
+            <FormFieldGrid>
+              <Controller
                 control={control}
                 name="mode"
-                label="Mode"
-                options={rewriteModeOptions}
-                error={errors.mode?.message}
+                render={({ field }) => (
+                  <SimpleSelectField
+                    id="mode"
+                    label="Mode"
+                    options={rewriteModeOptions}
+                    value={field.value}
+                    onValueChange={field.onChange}
+                    error={errors.mode?.message}
+                  />
+                )}
               />
-              <SelectField
+              <Controller
                 control={control}
                 name="targetLanguage"
-                label="Language"
-                options={rewriteLanguageOptions}
-                error={errors.targetLanguage?.message}
+                render={({ field }) => (
+                  <OptionSelectField
+                    id="targetLanguage"
+                    label="Language"
+                    optionKey="languages"
+                    options={optionLists.languages}
+                    value={field.value}
+                    onValueChange={field.onChange}
+                    error={errors.targetLanguage?.message}
+                  />
+                )}
               />
-              <SelectField
+              <Controller
                 control={control}
                 name="tone"
-                label="Tone"
-                options={rewriteToneOptions}
-                error={errors.tone?.message}
+                render={({ field }) => (
+                  <OptionSelectField
+                    id="tone"
+                    label="Tone"
+                    optionKey="tones"
+                    options={optionLists.tones}
+                    value={field.value}
+                    onValueChange={field.onChange}
+                    error={errors.tone?.message}
+                  />
+                )}
               />
-            </div>
+            </FormFieldGrid>
 
             <div className="flex flex-col gap-2">
               <label className="text-sm font-medium" htmlFor="existingDescription">
@@ -129,57 +159,8 @@ export function RewriteStudioForm() {
       </Card>
 
       <RewritePreview output={output} generationId={generationId} />
-    </div>
-  );
-}
-
-function SelectField({
-  control,
-  name,
-  label,
-  options,
-  error,
-}: {
-  control: Control<RewriteStudioInput>;
-  name: SelectName;
-  label: string;
-  options: readonly string[];
-  error?: string;
-}) {
-  const items = options.map((option) => ({ label: option, value: option }));
-
-  return (
-    <div className="flex flex-col gap-2">
-      <label className="text-sm font-medium" htmlFor={name}>
-        {label}
-      </label>
-      <Controller
-        control={control}
-        name={name}
-        render={({ field }) => (
-          <Select
-            items={items}
-            value={field.value}
-            onValueChange={(value) => field.onChange(value ?? "")}
-          >
-            <SelectTrigger id={name} aria-invalid={Boolean(error)} className="w-full">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectGroup>
-                <SelectLabel>{label}</SelectLabel>
-                {items.map((item) => (
-                  <SelectItem key={item.value} value={item.value}>
-                    {item.label}
-                  </SelectItem>
-                ))}
-              </SelectGroup>
-            </SelectContent>
-          </Select>
-        )}
-      />
-      {error ? <p className="text-sm text-destructive">{error}</p> : null}
-    </div>
+      </div>
+    </CustomOptionsProvider>
   );
 }
 

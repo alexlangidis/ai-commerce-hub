@@ -15,6 +15,13 @@
       "when": 1783075655597,
       "tag": "0001_bumpy_spyke",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1783090881607,
+      "tag": "0002_blue_sunfire",
+      "breakpoints": true
     }
   ]
 }

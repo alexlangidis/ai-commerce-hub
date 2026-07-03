@@ -80,7 +80,7 @@ export const features: {
   {
     title: "Translation Studio",
     description:
-      "Localize product content for Greek, English, German, French, Italian, and Spanish in one workflow.",
+      "Localize product content for Greek, English, German, French, Italian, Spanish, and Polish in one workflow.",
     icon: LanguagesIcon,
     accent: "from-chart-2/20 to-accent/30",
   },
@@ -185,7 +185,7 @@ export const pricingPlans = [
 
 export const heroStats = [
   { label: "Avg. SEO score lift", value: "+38%" },
-  { label: "Languages supported", value: "6" },
+  { label: "Languages supported", value: "7" },
   { label: "Time saved per SKU", value: "12 min" },
 ];
 

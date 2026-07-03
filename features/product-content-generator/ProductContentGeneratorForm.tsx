@@ -2,7 +2,7 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { WandSparklesIcon } from "lucide-react";
-import { Controller, useForm, type Control, type UseFormRegisterReturn } from "react-hook-form";
+import { Controller, useForm } from "react-hook-form";
 import { toast } from "sonner";
 
 import { Badge } from "@/components/ui/badge";
@@ -11,33 +11,35 @@ import {
   ToolFormPanel,
   ToolPreviewPanel,
 } from "@/components/app/form-panel";
-import { Input } from "@/components/ui/input";
 import {
-  Select,
-  SelectContent,
-  SelectGroup,
-  SelectItem,
-  SelectLabel,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { Textarea } from "@/components/ui/textarea";
+  CustomOptionsProvider,
+  CustomOptionsToggle,
+} from "@/components/app/custom-options-context";
+import { FormFieldGrid } from "@/components/app/form-field";
+import { OptionSelectField } from "@/components/app/option-select-field";
+import { TextAreaField } from "@/components/app/text-area-field";
+import { TextInputField } from "@/components/app/text-input-field";
 import { createProductContent } from "@/features/product-content-generator/actions";
 import {
   defaultProductContentInput,
-  productCategoryOptions,
   productContentInputSchema,
-  productLanguageOptions,
-  productToneOptions,
   type ProductContentInput,
   type ProductContentOutput,
 } from "@/features/product-content-generator/schema";
 import { PreviewBlock } from "@/features/shared/PreviewBlock";
 import { useToolPreview } from "@/lib/stores/generation-preview-store";
+import type { WorkspaceOptionLists } from "@/lib/workspace-options";
 
-type SelectFieldName = "category" | "targetLanguage" | "tone";
-
-export function ProductContentGeneratorForm() {
+export function ProductContentGeneratorForm({
+  defaultValues = defaultProductContentInput,
+  optionLists,
+}: {
+  defaultValues?: ProductContentInput;
+  optionLists: Pick<
+    WorkspaceOptionLists,
+    "languages" | "categories" | "tones"
+  >;
+}) {
   const { output, generationId, savePreview } =
     useToolPreview<ProductContentOutput>("product-generator");
   const {
@@ -47,7 +49,7 @@ export function ProductContentGeneratorForm() {
     formState: { errors, isSubmitting },
   } = useForm<ProductContentInput>({
     resolver: zodResolver(productContentInputSchema),
-    defaultValues: defaultProductContentInput,
+    defaultValues,
   });
 
   async function onSubmit(values: ProductContentInput) {
@@ -61,10 +63,12 @@ export function ProductContentGeneratorForm() {
   }
 
   return (
-    <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_420px]">
-      <ToolFormPanel
-        title="Product details"
-        description="Add the product facts. The preview generator saves output to history without using AI yet."
+    <CustomOptionsProvider>
+      <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_420px]">
+        <ToolFormPanel
+          title="Product details"
+          description="Add the product facts. The preview generator saves output to history without using AI yet."
+          headerAction={<CustomOptionsToggle />}
         footer={
           <>
             <p className="text-sm text-muted-foreground">
@@ -83,14 +87,14 @@ export function ProductContentGeneratorForm() {
           onSubmit={handleSubmit(onSubmit)}
           className="flex flex-col gap-5"
         >
-            <div className="grid gap-4 md:grid-cols-2">
-              <InputField
+            <div className="grid items-start gap-4 md:grid-cols-2 [&>*]:min-w-0">
+              <TextInputField
                 label="Product name"
                 placeholder="MagSafe Clear Case"
                 inputProps={register("productName")}
                 error={errors.productName?.message}
               />
-              <InputField
+              <TextInputField
                 label="Brand"
                 placeholder="Acme"
                 inputProps={register("brand")}
@@ -98,29 +102,53 @@ export function ProductContentGeneratorForm() {
               />
             </div>
 
-            <div className="grid gap-4 md:grid-cols-3">
-              <SelectField
+            <FormFieldGrid className="md:grid-cols-1 xl:grid-cols-3">
+              <Controller
                 control={control}
                 name="category"
-                label="Category"
-                options={productCategoryOptions}
-                error={errors.category?.message}
+                render={({ field }) => (
+                  <OptionSelectField
+                    id="category"
+                    label="Category"
+                    optionKey="categories"
+                    options={optionLists.categories}
+                    value={field.value}
+                    onValueChange={field.onChange}
+                    error={errors.category?.message}
+                  />
+                )}
               />
-              <SelectField
+              <Controller
                 control={control}
                 name="targetLanguage"
-                label="Language"
-                options={productLanguageOptions}
-                error={errors.targetLanguage?.message}
+                render={({ field }) => (
+                  <OptionSelectField
+                    id="targetLanguage"
+                    label="Language"
+                    optionKey="languages"
+                    options={optionLists.languages}
+                    value={field.value}
+                    onValueChange={field.onChange}
+                    error={errors.targetLanguage?.message}
+                  />
+                )}
               />
-              <SelectField
+              <Controller
                 control={control}
                 name="tone"
-                label="Tone"
-                options={productToneOptions}
-                error={errors.tone?.message}
+                render={({ field }) => (
+                  <OptionSelectField
+                    id="tone"
+                    label="Tone"
+                    optionKey="tones"
+                    options={optionLists.tones}
+                    value={field.value}
+                    onValueChange={field.onChange}
+                    error={errors.tone?.message}
+                  />
+                )}
               />
-            </div>
+            </FormFieldGrid>
 
             <TextAreaField
               label="Features"
@@ -141,122 +169,8 @@ export function ProductContentGeneratorForm() {
       </ToolFormPanel>
 
       <ProductContentPreview output={output} generationId={generationId} />
-    </div>
-  );
-}
-
-function InputField({
-  label,
-  placeholder,
-  error,
-  inputProps,
-}: {
-  label: string;
-  placeholder: string;
-  error?: string;
-  inputProps: UseFormRegisterReturn;
-}) {
-  return (
-    <div className="flex flex-col gap-2">
-      <label className="text-sm font-medium" htmlFor={inputProps.name}>
-        {label}
-      </label>
-      <Input
-        {...inputProps}
-        id={inputProps.name}
-        placeholder={placeholder}
-        className="h-10 bg-background/80"
-        aria-invalid={Boolean(error)}
-      />
-      {error ? <p className="text-sm text-destructive">{error}</p> : null}
-    </div>
-  );
-}
-
-function SelectField({
-  control,
-  name,
-  label,
-  options,
-  error,
-}: {
-  control: Control<ProductContentInput>;
-  name: SelectFieldName;
-  label: string;
-  options: readonly string[];
-  error?: string;
-}) {
-  const items = options.map((option) => ({
-    label: option,
-    value: option,
-  }));
-
-  return (
-    <div className="flex flex-col gap-2">
-      <label className="text-sm font-medium" htmlFor={name}>
-        {label}
-      </label>
-      <Controller
-        control={control}
-        name={name}
-        render={({ field }) => (
-          <Select
-            items={items}
-            value={field.value}
-            onValueChange={(value) => field.onChange(value ?? "")}
-          >
-            <SelectTrigger id={name} aria-invalid={Boolean(error)} className="h-10 w-full bg-background/80">
-              <SelectValue placeholder={`Select ${label.toLowerCase()}`} />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectGroup>
-                <SelectLabel>{label}</SelectLabel>
-                {items.map((item) => (
-                  <SelectItem key={item.value} value={item.value}>
-                    {item.label}
-                  </SelectItem>
-                ))}
-              </SelectGroup>
-            </SelectContent>
-          </Select>
-        )}
-      />
-      {error ? <p className="text-sm text-destructive">{error}</p> : null}
-    </div>
-  );
-}
-
-function TextAreaField({
-  label,
-  description,
-  placeholder,
-  error,
-  inputProps,
-}: {
-  label: string;
-  description: string;
-  placeholder: string;
-  error?: string;
-  inputProps: UseFormRegisterReturn;
-}) {
-  return (
-    <div className="flex flex-col gap-2">
-      <div className="flex flex-col gap-1">
-        <label className="text-sm font-medium" htmlFor={inputProps.name}>
-          {label}
-        </label>
-        <p className="text-sm text-muted-foreground">{description}</p>
       </div>
-      <Textarea
-        {...inputProps}
-        id={inputProps.name}
-        rows={4}
-        placeholder={placeholder}
-        className="bg-background/80"
-        aria-invalid={Boolean(error)}
-      />
-      {error ? <p className="text-sm text-destructive">{error}</p> : null}
-    </div>
+    </CustomOptionsProvider>
   );
 }
 

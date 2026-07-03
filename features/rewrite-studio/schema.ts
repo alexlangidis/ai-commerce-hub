@@ -1,5 +1,7 @@
 import { z } from "zod";
 
+import { languageOptions } from "@/lib/languages";
+
 export const rewriteModeOptions = [
   "Make professional",
   "Make shorter",
@@ -10,14 +12,7 @@ export const rewriteModeOptions = [
   "Improve Greek",
 ] as const;
 
-export const rewriteLanguageOptions = [
-  "Greek",
-  "English",
-  "German",
-  "French",
-  "Italian",
-  "Spanish",
-] as const;
+export const rewriteLanguageOptions = languageOptions;
 
 export const rewriteToneOptions = [
   "Professional",

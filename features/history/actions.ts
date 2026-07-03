@@ -25,6 +25,7 @@ import {
 } from "@/features/translation-studio/generate";
 import { translationStudioInputSchema } from "@/features/translation-studio/schema";
 import { db } from "@/lib/db";
+import { getBrandRulesForGeneration } from "@/lib/brand-voice-tool-defaults";
 import { requireSession } from "@/lib/session";
 
 export async function regenerateGeneration(generationId: string) {
@@ -50,15 +51,14 @@ export async function regenerateGeneration(generationId: string) {
   const brandProfile = await db.query.brandProfiles.findFirst({
     where: eq(brandProfiles.userId, session.user.id),
   });
-  const brandVoice = {
-    language: brandProfile?.language,
-    tone: brandProfile?.tone,
-    style: brandProfile?.style,
-    preferredCta: brandProfile?.preferredCta,
-    avoid: brandProfile?.avoid,
-  };
+  const brandVoice = getBrandRulesForGeneration(brandProfile);
   const { input, model, output, tone, language } =
-    await regenerateByTool(generation.tool, generation.input, brandVoice);
+    await regenerateByTool(
+      generation.tool,
+      generation.input,
+      brandVoice,
+      brandProfile,
+    );
   const nextVersionNumber =
     (generation.versions[0]?.versionNumber ?? 0) + 1;
 
@@ -97,13 +97,10 @@ export async function regenerateGeneration(generationId: string) {
 async function regenerateByTool(
   tool: string,
   rawInput: Record<string, unknown>,
-  brandVoice: {
-    language?: string;
-    tone?: string;
-    style?: string;
-    preferredCta?: string;
-    avoid?: string;
-  },
+  brandVoice: ReturnType<typeof getBrandRulesForGeneration>,
+  brandProfile: Awaited<
+    ReturnType<typeof db.query.brandProfiles.findFirst>
+  >,
 ) {
   if (tool === PRODUCT_CONTENT_TOOL_NAME) {
     const input = productContentInputSchema.parse(rawInput);
@@ -148,7 +145,7 @@ async function regenerateByTool(
       input,
       model,
       output,
-      tone: brandVoice.tone ?? "SEO",
+      tone: brandProfile?.tone ?? "SEO",
       language: input.targetLanguage,
     };
   }

@@ -27,6 +27,10 @@ export async function saveBrandVoice(input: BrandVoiceValues) {
     });
 
   revalidatePath("/dashboard/brand-voice");
+  revalidatePath("/dashboard/product-generator");
+  revalidatePath("/dashboard/rewrite-studio");
+  revalidatePath("/dashboard/seo-optimizer");
+  revalidatePath("/dashboard/translation-studio");
 }
 
 export async function getBrandVoice() {

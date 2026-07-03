@@ -105,6 +105,30 @@ export const brandProfiles = pgTable(
   (table) => [uniqueIndex("brand_profile_user_id_idx").on(table.userId)],
 );
 
+export const userWorkspaceOptions = pgTable(
+  "user_workspace_options",
+  {
+    id: text("id")
+      .$defaultFn(() => crypto.randomUUID())
+      .primaryKey(),
+    userId: text("user_id")
+      .notNull()
+      .references(() => user.id, { onDelete: "cascade" }),
+    languages: jsonb("languages").$type<string[]>().default([]).notNull(),
+    categories: jsonb("categories").$type<string[]>().default([]).notNull(),
+    tones: jsonb("tones").$type<string[]>().default([]).notNull(),
+    styles: jsonb("styles").$type<string[]>().default([]).notNull(),
+    avoids: jsonb("avoids").$type<string[]>().default([]).notNull(),
+    ctas: jsonb("ctas").$type<string[]>().default([]).notNull(),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at")
+      .defaultNow()
+      .$onUpdate(() => /* @__PURE__ */ new Date())
+      .notNull(),
+  },
+  (table) => [uniqueIndex("user_workspace_options_user_id_idx").on(table.userId)],
+);
+
 export const generations = pgTable(
   "generation",
   {
@@ -149,6 +173,11 @@ export const generationVersions = pgTable(
   (table) => [index("generation_version_generation_id_idx").on(table.generationId)],
 );
 
+export type PromptTemplateFields = {
+  description?: string;
+  items: string[];
+};
+
 export const promptTemplates = pgTable(
   "prompt_template",
   {
@@ -159,7 +188,7 @@ export const promptTemplates = pgTable(
     name: text("name").notNull(),
     slug: text("slug").notNull(),
     category: text("category").notNull(),
-    fields: jsonb("fields").$type<Array<Record<string, unknown>>>().notNull(),
+    fields: jsonb("fields").$type<PromptTemplateFields>().notNull(),
     isBuiltIn: boolean("is_built_in").default(false).notNull(),
     createdAt: timestamp("created_at").defaultNow().notNull(),
     updatedAt: timestamp("updated_at")
@@ -173,12 +202,13 @@ export const promptTemplates = pgTable(
   ],
 );
 
-export const userRelations = relations(user, ({ many }) => ({
+export const userRelations = relations(user, ({ many, one }) => ({
   sessions: many(session),
   accounts: many(account),
   brandProfiles: many(brandProfiles),
   generations: many(generations),
   promptTemplates: many(promptTemplates),
+  workspaceOptions: one(userWorkspaceOptions),
 }));
 
 export const sessionRelations = relations(session, ({ one }) => ({
@@ -202,6 +232,16 @@ export const brandProfileRelations = relations(brandProfiles, ({ one, many }) =>
   }),
   generations: many(generations),
 }));
+
+export const userWorkspaceOptionsRelations = relations(
+  userWorkspaceOptions,
+  ({ one }) => ({
+    user: one(user, {
+      fields: [userWorkspaceOptions.userId],
+      references: [user.id],
+    }),
+  }),
+);
 
 export const generationRelations = relations(generations, ({ one, many }) => ({
   user: one(user, {
