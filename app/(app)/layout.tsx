@@ -25,7 +25,23 @@ export default async function AppLayout({
               {session.user.email}
             </p>
           </div>
-          <SignOutButton />
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+            <nav className="flex gap-3 text-sm font-medium text-zinc-600 dark:text-zinc-400">
+              <Link
+                href="/dashboard"
+                className="transition hover:text-zinc-950 dark:hover:text-zinc-50"
+              >
+                Dashboard
+              </Link>
+              <Link
+                href="/dashboard/brand-voice"
+                className="transition hover:text-zinc-950 dark:hover:text-zinc-50"
+              >
+                Brand Voice
+              </Link>
+            </nav>
+            <SignOutButton />
+          </div>
         </div>
       </header>
       {children}

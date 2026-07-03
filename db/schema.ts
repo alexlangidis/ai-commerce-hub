@@ -1,5 +1,14 @@
 import { relations } from "drizzle-orm";
-import { pgTable, text, timestamp, boolean, index } from "drizzle-orm/pg-core";
+import {
+  boolean,
+  index,
+  integer,
+  jsonb,
+  pgTable,
+  text,
+  timestamp,
+  uniqueIndex,
+} from "drizzle-orm/pg-core";
 
 export const user = pgTable("user", {
   id: text("id").primaryKey(),
@@ -73,9 +82,103 @@ export const verification = pgTable(
   (table) => [index("verification_identifier_idx").on(table.identifier)],
 );
 
+export const brandProfiles = pgTable(
+  "brand_profile",
+  {
+    id: text("id")
+      .$defaultFn(() => crypto.randomUUID())
+      .primaryKey(),
+    userId: text("user_id")
+      .notNull()
+      .references(() => user.id, { onDelete: "cascade" }),
+    language: text("language").notNull(),
+    tone: text("tone").notNull(),
+    style: text("style").notNull(),
+    avoid: text("avoid").notNull(),
+    preferredCta: text("preferred_cta").notNull(),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at")
+      .defaultNow()
+      .$onUpdate(() => /* @__PURE__ */ new Date())
+      .notNull(),
+  },
+  (table) => [uniqueIndex("brand_profile_user_id_idx").on(table.userId)],
+);
+
+export const generations = pgTable(
+  "generation",
+  {
+    id: text("id")
+      .$defaultFn(() => crypto.randomUUID())
+      .primaryKey(),
+    userId: text("user_id")
+      .notNull()
+      .references(() => user.id, { onDelete: "cascade" }),
+    brandProfileId: text("brand_profile_id").references(() => brandProfiles.id, {
+      onDelete: "set null",
+    }),
+    tool: text("tool").notNull(),
+    input: jsonb("input").$type<Record<string, unknown>>().notNull(),
+    output: jsonb("output").$type<Record<string, unknown>>().notNull(),
+    tone: text("tone").notNull(),
+    language: text("language").notNull(),
+    model: text("model").notNull(),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+  },
+  (table) => [
+    index("generation_user_id_idx").on(table.userId),
+    index("generation_tool_idx").on(table.tool),
+  ],
+);
+
+export const generationVersions = pgTable(
+  "generation_version",
+  {
+    id: text("id")
+      .$defaultFn(() => crypto.randomUUID())
+      .primaryKey(),
+    generationId: text("generation_id")
+      .notNull()
+      .references(() => generations.id, { onDelete: "cascade" }),
+    versionNumber: integer("version_number").notNull(),
+    input: jsonb("input").$type<Record<string, unknown>>().notNull(),
+    output: jsonb("output").$type<Record<string, unknown>>().notNull(),
+    model: text("model").notNull(),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+  },
+  (table) => [index("generation_version_generation_id_idx").on(table.generationId)],
+);
+
+export const promptTemplates = pgTable(
+  "prompt_template",
+  {
+    id: text("id")
+      .$defaultFn(() => crypto.randomUUID())
+      .primaryKey(),
+    userId: text("user_id").references(() => user.id, { onDelete: "cascade" }),
+    name: text("name").notNull(),
+    slug: text("slug").notNull(),
+    category: text("category").notNull(),
+    fields: jsonb("fields").$type<Array<Record<string, unknown>>>().notNull(),
+    isBuiltIn: boolean("is_built_in").default(false).notNull(),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at")
+      .defaultNow()
+      .$onUpdate(() => /* @__PURE__ */ new Date())
+      .notNull(),
+  },
+  (table) => [
+    uniqueIndex("prompt_template_slug_idx").on(table.slug),
+    index("prompt_template_user_id_idx").on(table.userId),
+  ],
+);
+
 export const userRelations = relations(user, ({ many }) => ({
   sessions: many(session),
   accounts: many(account),
+  brandProfiles: many(brandProfiles),
+  generations: many(generations),
+  promptTemplates: many(promptTemplates),
 }));
 
 export const sessionRelations = relations(session, ({ one }) => ({
@@ -88,6 +191,43 @@ export const sessionRelations = relations(session, ({ one }) => ({
 export const accountRelations = relations(account, ({ one }) => ({
   user: one(user, {
     fields: [account.userId],
+    references: [user.id],
+  }),
+}));
+
+export const brandProfileRelations = relations(brandProfiles, ({ one, many }) => ({
+  user: one(user, {
+    fields: [brandProfiles.userId],
+    references: [user.id],
+  }),
+  generations: many(generations),
+}));
+
+export const generationRelations = relations(generations, ({ one, many }) => ({
+  user: one(user, {
+    fields: [generations.userId],
+    references: [user.id],
+  }),
+  brandProfile: one(brandProfiles, {
+    fields: [generations.brandProfileId],
+    references: [brandProfiles.id],
+  }),
+  versions: many(generationVersions),
+}));
+
+export const generationVersionRelations = relations(
+  generationVersions,
+  ({ one }) => ({
+    generation: one(generations, {
+      fields: [generationVersions.generationId],
+      references: [generations.id],
+    }),
+  }),
+);
+
+export const promptTemplateRelations = relations(promptTemplates, ({ one }) => ({
+  user: one(user, {
+    fields: [promptTemplates.userId],
     references: [user.id],
   }),
 }));
