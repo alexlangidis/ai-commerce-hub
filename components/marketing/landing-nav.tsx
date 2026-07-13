@@ -4,6 +4,7 @@ import Link from "next/link";
 import { MenuIcon, StoreIcon } from "lucide-react";
 
 import { navLinks } from "@/components/marketing/data";
+import { DemoLoginButton } from "@/components/auth/demo-login-button";
 import { useLandingAuth } from "@/components/marketing/landing-auth-context";
 import { LandingMobileMenu } from "@/components/marketing/landing-mobile-menu";
 import { motion } from "@/components/marketing/motion";
@@ -59,6 +60,7 @@ export function LandingNav() {
             >
               {isAuthenticated ? "Dashboard" : "Log in"}
             </Button>
+            {!isAuthenticated ? <DemoLoginButton /> : null}
             <Button
               nativeButton={false}
               render={<Link href={startCreatingHref} />}
