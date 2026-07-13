@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { ArrowRightIcon, ChevronRightIcon, SparklesIcon, StoreIcon } from "lucide-react";
 
+import { DemoLoginButton } from "@/components/auth/demo-login-button";
 import { navLinks } from "@/components/marketing/data";
 import { useLandingAuth } from "@/components/marketing/landing-auth-context";
 import { motion } from "@/components/marketing/motion";
@@ -146,6 +147,9 @@ export function LandingMobileMenu() {
             >
               {isAuthenticated ? "Dashboard" : "Log in"}
             </Button>
+            {!isAuthenticated ? (
+              <DemoLoginButton className="h-11 w-full" />
+            ) : null}
           </div>
         </motion.div>
       </SheetContent>

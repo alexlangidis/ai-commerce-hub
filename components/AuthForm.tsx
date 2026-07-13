@@ -7,12 +7,26 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { ArrowRightIcon, LockIcon, MailIcon, UserIcon } from "lucide-react";
+import {
+  ArrowRightIcon,
+  KeyRoundIcon,
+  LockIcon,
+  MailIcon,
+  UserIcon,
+} from "lucide-react";
 
 import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
 import { authClient } from "@/lib/auth-client";
+import { signInDemo } from "@/lib/demo-login";
 import { cn } from "@/lib/utils";
 
 type AuthFormProps = {
@@ -36,6 +50,7 @@ export function AuthForm({ mode }: AuthFormProps) {
   const router = useRouter();
   const isSignup = mode === "signup";
   const [error, setError] = useState("");
+  const [isDemoSubmitting, setIsDemoSubmitting] = useState(false);
   const schema = isSignup ? signupSchema : loginSchema;
   const {
     register,
@@ -66,6 +81,22 @@ export function AuthForm({ mode }: AuthFormProps) {
 
     if (result.error) {
       setError(result.error.message || "Authentication failed.");
+      return;
+    }
+
+    router.push("/dashboard");
+    router.refresh();
+  }
+
+  async function loginAsDemo() {
+    setError("");
+    setIsDemoSubmitting(true);
+
+    const result = await signInDemo();
+
+    if (!result.success) {
+      setError(result.error ?? "Demo login failed.");
+      setIsDemoSubmitting(false);
       return;
     }
 
@@ -151,6 +182,30 @@ export function AuthForm({ mode }: AuthFormProps) {
           {!isSubmitting ? <ArrowRightIcon data-icon="inline-end" /> : null}
         </Button>
       </form>
+
+      <Card className="mt-6 border-primary/20 bg-primary/5 shadow-none">
+        <CardHeader className="gap-1 pb-3">
+          <CardTitle className="flex items-center gap-2 text-sm">
+            <KeyRoundIcon className="size-4 text-primary" />
+            Try the demo workspace
+          </CardTitle>
+          <CardDescription>
+            Use the shared demo account to explore the studio. No signup needed.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="flex flex-col gap-3">
+          <Button
+            type="button"
+            variant="outline"
+            className="w-full bg-background/70"
+            onClick={loginAsDemo}
+            disabled={isSubmitting || isDemoSubmitting}
+          >
+            {isDemoSubmitting ? "Opening demo..." : "Log in with demo account"}
+            {!isDemoSubmitting ? <ArrowRightIcon data-icon="inline-end" /> : null}
+          </Button>
+        </CardContent>
+      </Card>
 
       <Separator className="my-6" />
 
